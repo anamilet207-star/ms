@@ -2,12 +2,11 @@ const { Pool } = require('pg');
 
 // Configuración de conexión a PostgreSQL
 const pool = new Pool({
-    user: 'postgres',
-    password: '20942094',
-    host: 'localhost',
-    port: 5432,
-    database: 'Tienda_mb'
-});
+    connectionString: process.env.DATABASE_URL, // ← Railway genera esta variable
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
 
 // Probar la conexión al iniciar
 pool.connect((err, client, done) => {
