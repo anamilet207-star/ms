@@ -1387,3 +1387,22 @@ h1, h2, h3, h4, h5, h6 {
 .category-card:hover .category-overlay {
     transform: translateY(0);
 }
+
+/* Versión mínima - agrega esto primero */
+.main-header, .top-bar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.main-header {
+    top: 20px; /* altura del top-bar */
+    z-index: 999;
+}
+
+body {
+    padding-top: 70px !important;
+}

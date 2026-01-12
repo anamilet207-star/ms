@@ -273,6 +273,7 @@ window.MabelApp = {
     checkUserSession
 };
 
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initApp);
 

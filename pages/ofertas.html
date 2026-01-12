@@ -16,290 +16,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ========== MENÚ MÁS PEQUEÑO ========== */
-        .top-bar {
-            padding: 4px 0;
-            font-size: 9px;
-        }
-        
-        .top-bar-content {
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .top-bar-links {
-            font-size: 8px;
-            gap: 12px;
-        }
-        
-        .main-header {
-            padding: 6px 0;
-        }
-        
-        .logo img {
-            max-height: 25px;
-        }
-        
-        .header-icons {
-            font-size: 12px;
-            gap: 12px;
-        }
-        
-        .cart-count {
-            font-size: 7px;
-            width: 10px;
-            height: 10px;
-            top: -6px;
-            right: -6px;
-        }
-        
-        .main-nav {
-            margin-top: 6px;
-        }
-        
-        .nav-menu {
-            gap: 6px;
-            padding-bottom: 3px;
-            min-height: 28px;
-        }
-        
-        .nav-menu li a {
-            font-size: 9px;
-            padding: 4px 6px;
-        }
-        
-        /* ========== HERO DE OFERTAS MÁS PEQUEÑO ========== */
+        /* Estilos específicos para la página de ofertas */
         .offers-hero {
-            padding: 60px 0 40px; /* Reducido de 100px 0 60px */
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            padding: 100px 0 60px;
+            text-align: center;
+            color: white;
         }
 
         .offers-hero-title {
-            font-size: 32px; /* Reducido de 48px */
-            letter-spacing: 3px; /* Reducido de 4px */
-            margin-bottom: 15px; /* Reducido de 20px */
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .offers-hero-subtitle {
-            font-size: 14px; /* Reducido de 18px */
-            max-width: 500px;
-            margin: 0 auto 30px; /* Reducido de 40px */
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            font-weight: 300;
         }
-        
-        /* ========== SECCIÓN PRODUCTOS ========== */
-        .products-section {
-            padding-top: 20px; /* Agregado para compensar menú pequeño */
-        }
-        
-        .shop-filters {
-            margin-top: 20px !important; /* Reducido de 30px */
-        }
-        
-        /* Ajustar tamaño de productos */
-        .shop-product-image {
-            height: 280px; /* Reducido de 350px */
-        }
-        
-        .shop-product-name {
-            font-size: 14px;
-        }
-        
-        .shop-product-price {
-            margin: 8px 0;
-        }
-        
-        .original-price {
-            font-size: 12px; /* Reducido de 14px */
-        }
-        
-        .discounted-price {
-            font-size: 16px; /* Reducido de 18px */
-        }
-        
-        .savings-tag {
-            font-size: 11px; /* Reducido de 12px */
-        }
-        
-        /* Badge de descuento más pequeño */
-        .discount-percent {
-            font-size: 11px; /* Reducido de 12px */
-            padding: 4px 8px; /* Reducido de 6px 12px */
-        }
-        
-        /* Botones más pequeños */
-        .btn, .btn-primary, .btn-outline {
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-        
-        /* Mensaje sin ofertas */
-        .no-offers-message {
-            padding: 50px 20px; /* Reducido de 80px 20px */
-        }
-        
-        .no-offers-message i {
-            font-size: 36px; /* Reducido de 48px */
-            margin-bottom: 15px; /* Reducido de 20px */
-        }
-        
-        .no-offers-message h3 {
-            font-size: 20px; /* Reducido de 24px */
-            margin-bottom: 10px; /* Reducido de 15px */
-        }
-        
-        /* Footer más compacto */
-        .main-footer {
-            padding: 30px 0 20px; /* Más compacto */
-        }
-        
-        .footer-section h3 {
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
-        .footer-links li {
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-        
-        /* ========== MEDIA QUERIES ========== */
-        @media (min-width: 768px) {
-            .top-bar {
-                padding: 6px 0;
-                font-size: 10px;
-            }
-            
-            .top-bar-content {
-                flex-direction: row;
-            }
-            
-            .top-bar-links {
-                font-size: 9px;
-            }
-            
-            .main-header {
-                padding: 10px 0;
-            }
-            
-            .logo img {
-                max-height: 30px;
-            }
-            
-            .header-icons {
-                font-size: 14px;
-                gap: 15px;
-            }
-            
-            .main-nav {
-                margin-top: 0;
-            }
-            
-            .nav-menu {
-                gap: 10px;
-                padding-bottom: 0;
-            }
-            
-            .nav-menu li a {
-                font-size: 10px;
-                padding: 6px 8px;
-            }
-            
-            .cart-count {
-                font-size: 8px;
-                width: 12px;
-                height: 12px;
-                top: -7px;
-                right: -7px;
-            }
-            
-            .offers-hero {
-                padding: 70px 0 50px; /* Un poco más en tablet */
-            }
-            
-            .offers-hero-title {
-                font-size: 36px; /* Un poco más en tablet */
-            }
-            
-            .offers-hero-subtitle {
-                font-size: 15px; /* Un poco más en tablet */
-            }
-            
-            .shop-product-image {
-                height: 300px; /* Un poco más en tablet */
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .top-bar {
-                font-size: 11px;
-            }
-            
-            .nav-menu {
-                gap: 15px;
-            }
-            
-            .nav-menu li a {
-                font-size: 11px;
-                padding: 6px 10px;
-            }
-            
-            .offers-hero-title {
-                font-size: 40px; /* Un poco más en desktop */
-            }
-        }
-        
-        @media (max-width: 360px) {
-            .top-bar {
-                font-size: 8px;
-                padding: 3px 0;
-            }
-            
-            .top-bar-links {
-                gap: 8px;
-                font-size: 7px;
-            }
-            
-            .logo img {
-                max-height: 22px;
-            }
-            
-            .header-icons {
-                font-size: 11px;
-                gap: 10px;
-            }
-            
-            .nav-menu {
-                gap: 4px;
-            }
-            
-            .nav-menu li a {
-                font-size: 8px;
-                padding: 3px 5px;
-            }
-            
-            .offers-hero {
-                padding: 40px 0 30px; /* Aún más pequeño en móviles pequeños */
-            }
-            
-            .offers-hero-title {
-                font-size: 24px; /* Reducido para móviles pequeños */
-            }
-            
-            .offers-hero-subtitle {
-                font-size: 12px; /* Reducido para móviles pequeños */
-                padding: 0 15px;
-            }
-            
-            .shop-product-image {
-                height: 220px; /* Más pequeño en móviles */
-            }
-            
-            .shop-filters {
-                margin-top: 15px !important;
-            }
-        }
-        
-        /* Estilos específicos para la página de ofertas */
+
         .offer-badge {
             background-color: #000 !important;
             color: white !important;
@@ -310,7 +55,45 @@
             content: "🎁 ";
         }
 
+        .discount-percent {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #000;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 500;
+            z-index: 2;
+        }
+
+        .original-price {
+            color: #999;
+            text-decoration: line-through;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        .discounted-price {
+            color: #000;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .savings-tag {
+            color: #666;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
         /* Asegurar que las imágenes se vean bien */
+        .shop-product-image {
+            height: 350px;
+            overflow: hidden;
+        }
+
         .shop-product-image img {
             width: 100%;
             height: 100%;
@@ -328,10 +111,42 @@
             color: white !important;
             border: none !important;
         }
+
+        /* Contenedor de mensaje cuando no hay ofertas */
+        .no-offers-message {
+            text-align: center;
+            padding: 80px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .no-offers-message i {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .no-offers-message h3 {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: #000;
+        }
+
+        .no-offers-message p {
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
-    <!-- Header Superior MÁS PEQUEÑO -->
+    <!-- Header Superior -->
     <div class="top-bar">
         <div class="container top-bar-content">
             <div class="top-bar-text">
@@ -345,15 +160,15 @@
         </div>
     </div>
 
-    <!-- Header Principal MÁS COMPACTO -->
+    <!-- Header Principal -->
     <header class="main-header" id="mainHeader">
         <div class="container header-container">
-            <!-- Logo más pequeño -->
+            <!-- Logo -->
             <a href="/" class="logo">
                 <img src="/public/icons/logo-mabel.png" class="logo-png" alt="Mabel Activewear">
             </a>
 
-            <!-- Navegación MÁS COMPACTA -->
+            <!-- Navegación -->
             <nav class="main-nav">
                 <ul class="nav-menu">
                     <li><a href="/shop">TIENDA</a></li>
@@ -364,7 +179,7 @@
                 </ul>
             </nav>
 
-            <!-- Iconos más pequeños -->
+            <!-- Iconos -->
             <div class="header-icons">
                 <a href="/account" class="icon-link" title="Mi Cuenta">
                     <i class="fas fa-user"></i>
@@ -377,7 +192,7 @@
         </div>
     </header>
 
-    <!-- Hero de Ofertas MÁS PEQUEÑO -->
+    <!-- Hero de Ofertas -->
     <section class="offers-hero">
         <div class="container">
             <h1 class="offers-hero-title">OFERTAS ESPECIALES</h1>
@@ -417,8 +232,8 @@
             </div>
 
             <!-- Contador de productos -->
-            <div style="text-align: center; margin: 30px 0 15px;">
-                <span id="product-count" style="color: #666; font-size: 13px; letter-spacing: 0.5px;">
+            <div style="text-align: center; margin: 40px 0 20px;">
+                <span id="product-count" style="color: #666; font-size: 14px; letter-spacing: 1px;">
                     Cargando ofertas...
                 </span>
             </div>
@@ -449,7 +264,7 @@
         </div>
     </section>
 
-    <!-- Footer más compacto -->
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
@@ -502,6 +317,7 @@
 
     <!-- Scripts -->
     <script src="/js/shop-script.js"></script>
+    <script src="/js/common.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎁 Página de ofertas cargada');
