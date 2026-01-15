@@ -653,7 +653,7 @@
                     <h3>AYUDA</h3>
                     <ul class="footer-links">
                         <li><a href="/contacto">Contacto</a></li>
-                        <li><a href="/envios">Envíos y Devoluciones</a></li>
+                        <li><a href="/envios">Envíos</a></li>
                         <li><a href="/faq">Preguntas Frecuentes</a></li>
                         <li><a href="/privacidad">Política de Privacidad</a></li>
                         <li><a href="/terminos">Términos y Condiciones</a></li>
@@ -695,19 +695,22 @@
     <script src="/js/account.js"></script>
     <script src="/js/script.js"></script>
     <script src="/js/common.js"></script>
+    <script src="/js/account-extras.js"></script>
     
     <script>
-        // Script de inicialización para la página de cuenta
+        // Script de inicialización simplificado
         document.addEventListener('DOMContentLoaded', function() {
             // Header scroll effect
             const header = document.getElementById('mainHeader');
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 100) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
+            if (header) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 100) {
+                        header.classList.add('scrolled');
+                    } else {
+                        header.classList.remove('scrolled');
+                    }
+                });
+            }
             
             // Funcionalidad de búsqueda
             const searchToggle = document.getElementById('searchToggle');
@@ -715,7 +718,7 @@
             const searchClose = document.getElementById('searchClose');
             const searchInput = document.getElementById('searchInput');
             
-            if (searchToggle && searchOverlay) {
+            if (searchToggle && searchOverlay && searchClose) {
                 searchToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     searchOverlay.style.display = 'block';

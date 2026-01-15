@@ -1042,6 +1042,8 @@ class CheckoutManager {
         console.log('✅ Instrucciones de transferencia mostradas');
     }
 
+    
+
     async applyCoupon() {
         const couponCode = document.getElementById('coupon-code').value.trim();
         
@@ -1093,6 +1095,7 @@ class CheckoutManager {
             this.hideLoading();
         }
     }
+
 
     togglePaymentForm(paymentMethod) {
         console.log('💳 Cambiando método de pago:', paymentMethod);
@@ -1813,6 +1816,75 @@ function formatPhoneNumber(input) {
             e.target.value = value;
         });
     }
+}
+
+// Función para cargar direcciones en checkout
+async function loadAddressesForCheckout() {
+    try {
+        const response = await fetch('/api/session');
+        const session = await response.json();
+        
+        if (!session.authenticated) return;
+        
+        const addressesResponse = await fetch(`/api/users/${session.user.id}/addresses`);
+        const addresses = await addressesResponse.json();
+        
+        const addressSelect = document.getElementById('shipping-address');
+        if (!addressSelect) return;
+        
+        // Limpiar opciones existentes
+        addressSelect.innerHTML = '<option value="">Selecciona una dirección</option>';
+        
+        // Agregar direcciones
+        addresses.forEach(address => {
+            const option = document.createElement('option');
+            option.value = address.id;
+            option.textContent = `${address.nombre} - ${address.calle} ${address.numero}, ${address.sector}, ${address.municipio}`;
+            if (address.predeterminada) {
+                option.selected = true;
+            }
+            addressSelect.appendChild(option);
+        });
+        
+        // Agregar opción para nueva dirección
+        const newAddressOption = document.createElement('option');
+        newAddressOption.value = 'new';
+        newAddressOption.textContent = '+ Agregar nueva dirección';
+        addressSelect.appendChild(newAddressOption);
+        
+        // Manejar cambio de selección
+        addressSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                showAddressFormInCheckout();
+            } else {
+                const selectedAddress = addresses.find(addr => addr.id == this.value);
+                if (selectedAddress) {
+                    updateCheckoutFormWithAddress(selectedAddress);
+                }
+            }
+        });
+        
+        // Seleccionar dirección predeterminada automáticamente
+        const defaultAddress = addresses.find(addr => addr.predeterminada);
+        if (defaultAddress) {
+            updateCheckoutFormWithAddress(defaultAddress);
+        }
+        
+    } catch (error) {
+        console.error('Error cargando direcciones:', error);
+    }
+}
+
+function updateCheckoutFormWithAddress(address) {
+    // Actualizar campos del formulario de checkout
+    document.getElementById('shipping-fullname').value = address.nombre_completo;
+    document.getElementById('shipping-phone').value = address.telefono;
+    document.getElementById('shipping-address').value = `${address.calle} ${address.numero}`;
+    document.getElementById('shipping-apartment').value = address.apartamento || '';
+    document.getElementById('shipping-city').value = address.municipio;
+    document.getElementById('shipping-province').value = address.provincia;
+    document.getElementById('shipping-sector').value = address.sector;
+    document.getElementById('shipping-reference').value = address.referencia;
 }
 
 function saveOrderToLocalStorage(orderData) {

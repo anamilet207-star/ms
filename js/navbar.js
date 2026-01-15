@@ -492,5 +492,6 @@ class MabelNavbar extends HTMLElement {
     }
 }
 
+
 // Definir custom element
 customElements.define('mabel-navbar', MabelFooter);

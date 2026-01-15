@@ -1155,6 +1155,12 @@ document.addEventListener('DOMContentLoaded', function() {
             element.textContent = totalItems;
             element.style.display = totalItems > 0 ? 'inline-block' : 'none';
         }
+
+          
+    // Inicializar wishlist manager si existe
+    if (typeof WishlistManager !== 'undefined' && !window.wishlistManager) {
+        window.wishlistManager = new WishlistManager();
+    }
     });
     
     // Agregar estilos CSS para modales
@@ -1456,3 +1462,4 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(style);
     }
 });
+

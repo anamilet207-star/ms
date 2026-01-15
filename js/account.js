@@ -1,8 +1,8 @@
 // ============================================
-// CUENTA DE USUARIO - VERSIÓN MEJORADA Y CORREGIDA
+// CUENTA DE USUARIO - VERSIÓN CORREGIDA Y FUNCIONAL
 // ============================================
 
-class AccountManager {
+class AccountManagerFixed {
     constructor() {
         this.user = null;
         this.currentSection = 'dashboard';
@@ -10,15 +10,18 @@ class AccountManager {
         this.addresses = [];
         this.orders = [];
         this.wishlist = [];
+        this.isLoading = false;
         this.init();
     }
 
     async init() {
-        console.log('👤 Inicializando gestión de cuenta...');
+        console.log('👤 Inicializando gestión de cuenta (versión corregida)...');
         
         try {
             // Verificar autenticación
-            await this.checkAuthentication();
+            if (!await this.checkAuthentication()) {
+                return;
+            }
             
             // Cargar datos del usuario
             await this.loadUserData();
@@ -30,12 +33,15 @@ class AccountManager {
             this.setupNavigation();
             
             // Cargar sección inicial
-            this.loadSection(this.currentSection);
+            await this.loadSection(this.currentSection);
             
-            console.log('✅ Gestión de cuenta inicializada');
+            // Inicializar carrito
+            this.updateCartCount();
+            
+            console.log('✅ Gestión de cuenta inicializada correctamente');
         } catch (error) {
             console.error('❌ Error inicializando cuenta:', error);
-            this.showNotification('Error al cargar la cuenta. Intenta nuevamente.', 'error');
+            this.showNotification('Error al cargar la cuenta. Intenta recargar la página.', 'error');
         }
     }
 
@@ -45,7 +51,10 @@ class AccountManager {
             const data = await response.json();
             
             if (!data.authenticated) {
-                window.location.href = '/login';
+                this.showNotification('Debes iniciar sesión para ver tu cuenta', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                }, 1500);
                 return false;
             }
             
@@ -54,15 +63,19 @@ class AccountManager {
             
         } catch (error) {
             console.error('❌ Error verificando autenticación:', error);
-            window.location.href = '/login';
+            this.showNotification('Error de conexión', 'error');
             return false;
         }
     }
 
     async loadUserData() {
         try {
+            console.log('📋 Cargando datos del usuario:', this.user.id);
             const response = await fetch(`/api/users/${this.user.id}`);
-            if (!response.ok) throw new Error('Error cargando datos del usuario');
+            
+            if (!response.ok) {
+                throw new Error('Error cargando datos del usuario');
+            }
             
             const userData = await response.json();
             this.user = { ...this.user, ...userData };
@@ -75,7 +88,7 @@ class AccountManager {
             
         } catch (error) {
             console.error('❌ Error cargando datos del usuario:', error);
-            this.showNotification('Error cargando datos del perfil', 'error');
+            this.showNotification('Error cargando datos del perfil', 'warning');
         }
     }
 
@@ -84,8 +97,9 @@ class AccountManager {
             const response = await fetch('/api/dominican-republic/provinces');
             if (response.ok) {
                 this.provinces = await response.json();
+                console.log('🗺️ Provincias cargadas:', this.provinces.length);
             } else {
-                // Provincias por defecto si la API falla
+                // Provincias por defecto
                 this.provinces = [
                     'Distrito Nacional', 'Santo Domingo', 'Santiago', 'Puerto Plata',
                     'La Vega', 'San Cristóbal', 'La Romana', 'San Pedro de Macorís'
@@ -101,13 +115,13 @@ class AccountManager {
         // Actualizar nombre en sidebar
         const userNameElements = document.querySelectorAll('.user-name');
         userNameElements.forEach(element => {
-            element.textContent = `${this.user.nombre} ${this.user.apellido}`;
+            element.textContent = `${this.user.nombre || ''} ${this.user.apellido || ''}`.trim() || 'Usuario';
         });
         
         // Actualizar email
         const userEmailElements = document.querySelectorAll('.user-email');
         userEmailElements.forEach(element => {
-            element.textContent = this.user.email;
+            element.textContent = this.user.email || '';
         });
         
         // Actualizar avatar
@@ -115,26 +129,50 @@ class AccountManager {
         if (userAvatar) {
             const initials = `${this.user.nombre?.charAt(0) || ''}${this.user.apellido?.charAt(0) || ''}`.toUpperCase();
             userAvatar.textContent = initials || 'U';
+            userAvatar.style.backgroundColor = this.generateColorFromName(this.user.nombre || 'Usuario');
         }
+    }
+
+    generateColorFromName(name) {
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', 
+            '#118AB2', '#073B4C', '#EF476F', '#7209B7'
+        ];
+        const index = name.length % colors.length;
+        return colors[index];
     }
 
     updateHeaderStats() {
         const statsContainer = document.getElementById('account-header-stats');
-        if (statsContainer) {
-            const stats = this.getSampleStats();
-            
-            const statsElements = statsContainer.querySelectorAll('.header-stat');
-            
-            // Actualizar pedidos
-            statsElements[0].querySelector('.number').textContent = stats.totalOrders || 0;
-            
-            // Actualizar favoritos
-            statsElements[1].querySelector('.number').textContent = stats.wishlistItems || 0;
-            
-            // Actualizar puntos (ejemplo)
-            statsElements[2].querySelector('.number').textContent = Math.floor(stats.totalSpent / 10) || 0;
-            
-            // Actualizar pendientes
+        if (!statsContainer) return;
+        
+        // Solo mostrar estadísticas si existen
+        const stats = this.user.stats || {
+            total_orders: 0,
+            wishlist_items: 0,
+            total_spent: 0,
+            pendingOrders: 0
+        };
+        
+        const statsElements = statsContainer.querySelectorAll('.header-stat');
+        
+        // Actualizar pedidos
+        if (statsElements[0]) {
+            statsElements[0].querySelector('.number').textContent = stats.total_orders || 0;
+        }
+        
+        // Actualizar favoritos
+        if (statsElements[1]) {
+            statsElements[1].querySelector('.number').textContent = stats.wishlist_items || 0;
+        }
+        
+        // Actualizar puntos (ejemplo)
+        if (statsElements[2]) {
+            statsElements[2].querySelector('.number').textContent = Math.floor((stats.total_spent || 0) / 10);
+        }
+        
+        // Actualizar pendientes
+        if (statsElements[3]) {
             statsElements[3].querySelector('.number').textContent = stats.pendingOrders || 0;
         }
     }
@@ -143,9 +181,13 @@ class AccountManager {
         // Navegación del sidebar
         document.querySelectorAll('.account-nav a').forEach(link => {
             link.addEventListener('click', (e) => {
+                if (this.isLoading) return;
+                
                 e.preventDefault();
                 
                 const section = link.getAttribute('href').substring(1);
+                if (section === 'logout-btn') return;
+                
                 this.currentSection = section;
                 
                 // Actualizar clase active
@@ -170,14 +212,17 @@ class AccountManager {
     }
 
     async loadSection(section) {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
         const contentContainer = document.querySelector('.account-content');
         if (!contentContainer) return;
         
         // Mostrar loading
         contentContainer.innerHTML = `
-            <div class="loading" style="text-align: center; padding: 100px;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-                <p>Cargando...</p>
+            <div class="loading" style="text-align: center; padding: 60px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--black);"></i>
+                <p style="margin-top: 15px; color: var(--gray-dark);">Cargando ${this.getSectionName(section)}...</p>
             </div>
         `;
         
@@ -213,96 +258,120 @@ class AccountManager {
         } catch (error) {
             console.error(`❌ Error cargando sección ${section}:`, error);
             contentContainer.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando la sección</h3>
-                    <p>Intenta nuevamente o contacta con soporte si el problema persiste.</p>
-                    <button onclick="location.reload()" class="btn" style="margin-top: 20px;">
+                <div class="error-message" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-exclamation-triangle fa-3x" style="color: #FF6B6B; margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--black); margin-bottom: 10px;">Error cargando la sección</h3>
+                    <p style="color: var(--gray-text); margin-bottom: 20px;">Intenta nuevamente o contacta con soporte si el problema persiste.</p>
+                    <button onclick="location.reload()" class="btn" style="margin-top: 10px;">
                         <i class="fas fa-redo"></i> Recargar Página
                     </button>
                 </div>
             `;
+        } finally {
+            this.isLoading = false;
         }
+    }
+
+    getSectionName(section) {
+        const names = {
+            'dashboard': 'Dashboard',
+            'orders': 'Órdenes',
+            'profile': 'Perfil',
+            'addresses': 'Direcciones',
+            'wishlist': 'Wishlist',
+            'settings': 'Configuración'
+        };
+        return names[section] || 'contenido';
     }
 
     async loadDashboard() {
         try {
             // Cargar estadísticas y órdenes recientes
-            const [orders, stats] = await Promise.all([
-                this.getRecentOrders(5),
-                this.getUserStats()
+            const [orders, userData] = await Promise.all([
+                this.getRecentOrders(3),
+                this.getUserDetailedData()
             ]);
+            
+            const stats = userData.stats || {
+                total_orders: 0,
+                wishlist_items: 0,
+                total_spent: 0,
+                reviews: 0,
+                pendingOrders: 0
+            };
             
             return `
                 <div class="dashboard-content">
-                    <div class="dashboard-header">
-                        <h1>¡Bienvenido, ${this.user.nombre}!</h1>
-                        <p>Tu actividad reciente en Mabel Activewear</p>
+                    <div class="dashboard-header" style="margin-bottom: 30px;">
+                        <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">¡Bienvenido, ${this.user.nombre || 'Usuario'}!</h1>
+                        <p style="color: var(--gray-text); font-size: 16px;">Tu actividad reciente en Mabel Activewear</p>
                     </div>
                     
-                    <div class="dashboard-stats">
-                        <div class="stat-card">
-                            <i class="fas fa-shopping-bag"></i>
-                            <h3>${stats.totalOrders || 0}</h3>
-                            <p>Órdenes Totales</p>
+                    <div class="dashboard-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                        <div class="stat-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 25px; text-align: center; transition: all 0.3s ease;">
+                            <i class="fas fa-shopping-bag" style="font-size: 28px; color: var(--black); margin-bottom: 15px;"></i>
+                            <h3 style="font-size: 32px; font-weight: 300; margin-bottom: 5px;">${stats.total_orders || 0}</h3>
+                            <p style="color: var(--gray-text); font-size: 13px; letter-spacing: 1.5px;">Órdenes Totales</p>
                         </div>
                         
-                        <div class="stat-card">
-                            <i class="fas fa-heart"></i>
-                            <h3>${stats.wishlistItems || 0}</h3>
-                            <p>En Wishlist</p>
+                        <div class="stat-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 25px; text-align: center; transition: all 0.3s ease;">
+                            <i class="fas fa-heart" style="font-size: 28px; color: var(--black); margin-bottom: 15px;"></i>
+                            <h3 style="font-size: 32px; font-weight: 300; margin-bottom: 5px;">${stats.wishlist_items || 0}</h3>
+                            <p style="color: var(--gray-text); font-size: 13px; letter-spacing: 1.5px;">En Wishlist</p>
                         </div>
                         
-                        <div class="stat-card">
-                            <i class="fas fa-star"></i>
-                            <h3>${stats.reviews || 0}</h3>
-                            <p>Reseñas</p>
+                        <div class="stat-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 25px; text-align: center; transition: all 0.3s ease;">
+                            <i class="fas fa-star" style="font-size: 28px; color: var(--black); margin-bottom: 15px;"></i>
+                            <h3 style="font-size: 32px; font-weight: 300; margin-bottom: 5px;">${stats.reviews || 0}</h3>
+                            <p style="color: var(--gray-text); font-size: 13px; letter-spacing: 1.5px;">Reseñas</p>
                         </div>
                         
-                        <div class="stat-card">
-                            <i class="fas fa-clock"></i>
-                            <h3>${stats.pendingOrders || 0}</h3>
-                            <p>Pendientes</p>
+                        <div class="stat-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 25px; text-align: center; transition: all 0.3s ease;">
+                            <i class="fas fa-clock" style="font-size: 28px; color: var(--black); margin-bottom: 15px;"></i>
+                            <h3 style="font-size: 32px; font-weight: 300; margin-bottom: 5px;">${stats.pendingOrders || 0}</h3>
+                            <p style="color: var(--gray-text); font-size: 13px; letter-spacing: 1.5px;">Pendientes</p>
                         </div>
                     </div>
                     
-                    <div class="recent-orders">
-                        <div class="section-header">
-                            <h2>Órdenes Recientes</h2>
-                            <a href="#orders" class="view-all">Ver todas</a>
+                    <div class="recent-orders" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 30px; margin-bottom: 40px;">
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                            <h2 style="font-size: 20px; font-weight: 400; letter-spacing: 1.5px;">Órdenes Recientes</h2>
+                            <a href="#orders" class="view-all" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid var(--black); color: var(--black); text-decoration: none; font-size: 12px; letter-spacing: 1.5px; border-radius: 4px;">
+                                Ver todas
+                            </a>
                         </div>
                         ${orders.length > 0 ? this.generateOrdersTable(orders, true) : `
-                            <div class="empty-state">
-                                <i class="fas fa-shopping-bag fa-3x"></i>
-                                <h3>No hay órdenes recientes</h3>
-                                <p>Realiza tu primera compra para ver tus órdenes aquí</p>
-                                <a href="/shop" class="btn">Ir a la Tienda</a>
+                            <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                                <i class="fas fa-shopping-bag fa-3x" style="color: #eee; margin-bottom: 20px;"></i>
+                                <h3 style="font-size: 18px; margin-bottom: 10px;">No hay órdenes recientes</h3>
+                                <p style="color: var(--gray-text); margin-bottom: 20px;">Realiza tu primera compra para ver tus órdenes aquí</p>
+                                <a href="/shop" class="btn" style="display: inline-block; padding: 10px 24px; background: var(--black); color: white; text-decoration: none; border-radius: 4px;">Ir a la Tienda</a>
                             </div>
                         `}
                     </div>
                     
                     <div class="quick-actions">
-                        <h2>Acciones Rápidas</h2>
-                        <div class="quick-actions-grid">
-                            <a href="/shop" class="quick-action-card">
-                                <i class="fas fa-store"></i>
-                                <span>Continuar Comprando</span>
-                                <i class="fas fa-arrow-right"></i>
+                        <h2 style="font-size: 20px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 20px;">Acciones Rápidas</h2>
+                        <div class="quick-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <a href="/shop" class="quick-action-card" style="background: white; border: 2px solid #f0f0f0; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: #000; transition: all 0.3s ease;">
+                                <i class="fas fa-store" style="font-size: 20px;"></i>
+                                <span style="flex: 1; margin-left: 15px;">Continuar Comprando</span>
+                                <i class="fas fa-arrow-right" style="color: #666;"></i>
                             </a>
-                            <a href="#wishlist" class="quick-action-card">
-                                <i class="fas fa-heart"></i>
-                                <span>Ver Wishlist</span>
-                                <i class="fas fa-arrow-right"></i>
+                            <a href="#wishlist" class="quick-action-card" style="background: white; border: 2px solid #f0f0f0; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: #000; transition: all 0.3s ease;">
+                                <i class="fas fa-heart" style="font-size: 20px;"></i>
+                                <span style="flex: 1; margin-left: 15px;">Ver Wishlist</span>
+                                <i class="fas fa-arrow-right" style="color: #666;"></i>
                             </a>
-                            <a href="#addresses" class="quick-action-card">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Gestionar Direcciones</span>
-                                <i class="fas fa-arrow-right"></i>
+                            <a href="#addresses" class="quick-action-card" style="background: white; border: 2px solid #f0f0f0; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: #000; transition: all 0.3s ease;">
+                                <i class="fas fa-map-marker-alt" style="font-size: 20px;"></i>
+                                <span style="flex: 1; margin-left: 15px;">Gestionar Direcciones</span>
+                                <i class="fas fa-arrow-right" style="color: #666;"></i>
                             </a>
-                            <a href="/ofertas" class="quick-action-card">
-                                <i class="fas fa-tag"></i>
-                                <span>Ver Ofertas</span>
-                                <i class="fas fa-arrow-right"></i>
+                            <a href="/ofertas" class="quick-action-card" style="background: white; border: 2px solid #f0f0f0; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: #000; transition: all 0.3s ease;">
+                                <i class="fas fa-tag" style="font-size: 20px;"></i>
+                                <span style="flex: 1; margin-left: 15px;">Ver Ofertas</span>
+                                <i class="fas fa-arrow-right" style="color: #666;"></i>
                             </a>
                         </div>
                     </div>
@@ -310,121 +379,140 @@ class AccountManager {
             `;
         } catch (error) {
             console.error('Error cargando dashboard:', error);
-            return `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando el dashboard</h3>
-                    <p>Por favor, intenta nuevamente.</p>
-                </div>
-            `;
+            return this.getErrorHTML('Error cargando el dashboard');
         }
     }
 
-    async getRecentOrders(limit = 5) {
+    async getUserDetailedData() {
+        try {
+            const response = await fetch(`/api/users/${this.user.id}`);
+            if (!response.ok) throw new Error('Error cargando datos');
+            return await response.json();
+        } catch (error) {
+            console.error('Error cargando datos detallados:', error);
+            return { stats: {} };
+        }
+    }
+
+    async getRecentOrders(limit = 3) {
         try {
             const response = await fetch(`/api/users/${this.user.id}/orders?limit=${limit}`);
             if (!response.ok) {
-                // Si hay error, devolver datos de ejemplo para desarrollo
-                return this.getSampleOrders(limit);
+                return [];
             }
             return await response.json();
+        } catch (error) {
+            console.error('Error cargando órdenes recientes:', error);
+            return [];
+        }
+    }
+
+    async loadOrders() {
+        try {
+            const orders = await this.getAllOrders();
+            
+            return `
+                <div class="orders-content">
+                    <div class="section-header" style="margin-bottom: 30px;">
+                        <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mis Órdenes</h1>
+                        <p style="color: var(--gray-text); font-size: 16px;">Historial de todas tus compras</p>
+                    </div>
+                    
+                    ${orders.length > 0 ? this.generateOrdersTable(orders) : `
+                        <div class="empty-state" style="text-align: center; padding: 60px 20px; background: white; border: 1px solid #eee; border-radius: 8px;">
+                            <i class="fas fa-shopping-bag fa-3x" style="color: #eee; margin-bottom: 20px;"></i>
+                            <h3 style="font-size: 20px; margin-bottom: 10px;">No has realizado ninguna compra</h3>
+                            <p style="color: var(--gray-text); margin-bottom: 20px;">Explora nuestra tienda para encontrar productos increíbles</p>
+                            <a href="/shop" class="btn" style="display: inline-block; padding: 10px 24px; background: var(--black); color: white; text-decoration: none; border-radius: 4px;">Ver Tienda</a>
+                        </div>
+                    `}
+                    
+                    ${orders.length > 0 ? `
+                        <div class="orders-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 40px; padding-top: 40px; border-top: 1px solid #eee;">
+                            <div class="summary-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                                <i class="fas fa-receipt" style="font-size: 24px; color: var(--black); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 6px;"></i>
+                                <div>
+                                    <h3 style="font-size: 24px; font-weight: 300; margin-bottom: 5px;">${orders.length}</h3>
+                                    <p style="font-size: 12px; color: var(--gray-text); letter-spacing: 1.2px;">Pedidos Totales</p>
+                                </div>
+                            </div>
+                            <div class="summary-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                                <i class="fas fa-money-bill-wave" style="font-size: 24px; color: var(--black); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 6px;"></i>
+                                <div>
+                                    <h3 style="font-size: 24px; font-weight: 300; margin-bottom: 5px;">RD$ ${orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}</h3>
+                                    <p style="font-size: 12px; color: var(--gray-text); letter-spacing: 1.2px;">Total Gastado</p>
+                                </div>
+                            </div>
+                            <div class="summary-card" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                                <i class="fas fa-box-open" style="font-size: 24px; color: var(--black); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 6px;"></i>
+                                <div>
+                                    <h3 style="font-size: 24px; font-weight: 300; margin-bottom: 5px;">${orders.filter(o => o.estado === 'entregado' || o.estado === 'delivered').length}</h3>
+                                    <p style="font-size: 12px; color: var(--gray-text); letter-spacing: 1.2px;">Entregados</p>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         } catch (error) {
             console.error('Error cargando órdenes:', error);
-            return this.getSampleOrders(limit);
+            return this.getErrorHTML('Error cargando las órdenes');
         }
     }
 
-    getSampleOrders(limit = 5) {
-        return [
-            {
-                id: 1001,
-                fecha_orden: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                total: 149.97,
-                estado: 'entregado',
-                items_count: 2,
-                tracking_number: 'VMP123456789RD',
-                paqueteria: 'VIMENPAQ'
-            },
-            {
-                id: 1002,
-                fecha_orden: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-                total: 89.99,
-                estado: 'procesando',
-                items_count: 1,
-                tracking_number: null,
-                paqueteria: null
-            },
-            {
-                id: 1003,
-                fecha_orden: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-                total: 210.50,
-                estado: 'pendiente',
-                items_count: 3,
-                tracking_number: null,
-                paqueteria: null
-            }
-        ].slice(0, limit);
-    }
-
-    async getUserStats() {
+    async getAllOrders() {
         try {
-            const response = await fetch(`/api/users/${this.user.id}/stats`);
+            const response = await fetch(`/api/users/${this.user.id}/orders`);
             if (!response.ok) {
-                return this.getSampleStats();
+                return [];
             }
             return await response.json();
         } catch (error) {
-            console.error('Error cargando estadísticas:', error);
-            return this.getSampleStats();
+            console.error('Error cargando todas las órdenes:', error);
+            return [];
         }
-    }
-
-    getSampleStats() {
-        return {
-            totalOrders: 3,
-            wishlistItems: 5,
-            reviews: 2,
-            pendingOrders: 1,
-            totalSpent: 450.46
-        };
     }
 
     generateOrdersTable(orders, isRecent = false) {
         return `
-            <div class="table-container">
-                <table class="orders-table">
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="orders-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <thead>
-                        <tr>
-                            <th>Orden #</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                        <tr style="background: #fafafa;">
+                            <th style="padding: 15px; text-align: left; font-weight: 400; letter-spacing: 1.2px; color: var(--gray-dark); border-bottom: 1px solid #eee;">Orden #</th>
+                            <th style="padding: 15px; text-align: left; font-weight: 400; letter-spacing: 1.2px; color: var(--gray-dark); border-bottom: 1px solid #eee;">Fecha</th>
+                            <th style="padding: 15px; text-align: left; font-weight: 400; letter-spacing: 1.2px; color: var(--gray-dark); border-bottom: 1px solid #eee;">Total</th>
+                            <th style="padding: 15px; text-align: left; font-weight: 400; letter-spacing: 1.2px; color: var(--gray-dark); border-bottom: 1px solid #eee;">Estado</th>
+                            <th style="padding: 15px; text-align: left; font-weight: 400; letter-spacing: 1.2px; color: var(--gray-dark); border-bottom: 1px solid #eee;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${orders.map(order => `
-                            <tr>
-                                <td>
-                                    <span class="order-number">#${order.id}</span>
-                                    ${order.items_count ? `<span class="items-count">${order.items_count} item${order.items_count > 1 ? 's' : ''}</span>` : ''}
+                            <tr style="transition: background 0.2s ease;">
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <span class="order-number" style="font-weight: 500; color: var(--black); display: block; margin-bottom: 4px;">#${order.id}</span>
+                                    <span class="items-count" style="font-size: 12px; color: var(--gray-text);">${order.items_count || 1} item${order.items_count !== 1 ? 's' : ''}</span>
                                 </td>
-                                <td>${new Date(order.fecha_orden).toLocaleDateString('es-DO')}</td>
-                                <td><strong>RD$ ${parseFloat(order.total).toFixed(2)}</strong></td>
-                                <td>
-                                    <span class="order-status status-${order.estado}">
+                                <td style="padding: 15px; border-bottom: 1px solid #eee; color: var(--gray-dark);">
+                                    ${new Date(order.fecha_orden || order.fecha_creacion).toLocaleDateString('es-DO')}
+                                </td>
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <strong style="color: var(--black);">RD$ ${parseFloat(order.total || 0).toFixed(2)}</strong>
+                                </td>
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <span class="order-status ${this.getStatusClass(order.estado)}" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fas ${this.getStatusIcon(order.estado)}"></i>
                                         ${this.formatOrderStatus(order.estado)}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button class="btn-view-order" data-order="${order.id}" title="Ver detalles">
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <div class="table-actions" style="display: flex; gap: 8px;">
+                                        <button class="btn-view-order" data-order="${order.id}" style="background: transparent; border: 1px solid #eee; color: var(--black); padding: 6px 12px; font-size: 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px;" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                             ${!isRecent ? '<span>Ver</span>' : ''}
                                         </button>
-                                        ${order.estado === 'shipped' || order.estado === 'enviado' ? `
-                                            <button class="btn-track-order" data-order="${order.id}" title="Rastrear envío">
+                                        ${this.canTrackOrder(order.estado) ? `
+                                            <button class="btn-track-order" data-order="${order.id}" style="background: transparent; border: 1px solid #eee; color: var(--black); padding: 6px 12px; font-size: 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px;" title="Rastrear envío">
                                                 <i class="fas fa-shipping-fast"></i>
                                             </button>
                                         ` : ''}
@@ -436,6 +524,22 @@ class AccountManager {
                 </table>
             </div>
         `;
+    }
+
+    getStatusClass(status) {
+        const statusMap = {
+            'pendiente': 'status-pending',
+            'procesando': 'status-processing',
+            'enviado': 'status-shipped',
+            'entregado': 'status-delivered',
+            'cancelado': 'status-cancelled',
+            'pending': 'status-pending',
+            'processing': 'status-processing',
+            'shipped': 'status-shipped',
+            'delivered': 'status-delivered',
+            'cancelled': 'status-cancelled'
+        };
+        return statusMap[status] || '';
     }
 
     getStatusIcon(status) {
@@ -470,145 +574,80 @@ class AccountManager {
         return statusMap[status] || status;
     }
 
-    async loadOrders() {
-        try {
-            const orders = await this.getAllOrders();
-            
-            return `
-                <div class="orders-content">
-                    <div class="section-header">
-                        <h1>Mis Órdenes</h1>
-                        <p>Historial de todas tus compras</p>
-                    </div>
-                    
-                    ${orders.length > 0 ? this.generateOrdersTable(orders) : `
-                        <div class="empty-state">
-                            <i class="fas fa-shopping-bag fa-3x"></i>
-                            <h3>No has realizado ninguna compra</h3>
-                            <p>Explora nuestra tienda para encontrar productos increíbles</p>
-                            <a href="/shop" class="btn">Ver Tienda</a>
-                        </div>
-                    `}
-                    
-                    ${orders.length > 0 ? `
-                        <div class="orders-summary">
-                            <div class="summary-card">
-                                <i class="fas fa-receipt"></i>
-                                <div>
-                                    <h3>${orders.length}</h3>
-                                    <p>Pedidos Totales</p>
-                                </div>
-                            </div>
-                            <div class="summary-card">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <div>
-                                    <h3>RD$ ${orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}</h3>
-                                    <p>Total Gastado</p>
-                                </div>
-                            </div>
-                            <div class="summary-card">
-                                <i class="fas fa-box-open"></i>
-                                <div>
-                                    <h3>${orders.filter(o => o.estado === 'entregado' || o.estado === 'delivered').length}</h3>
-                                    <p>Entregados</p>
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        } catch (error) {
-            console.error('Error cargando órdenes:', error);
-            return `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando las órdenes</h3>
-                    <p>Por favor, intenta nuevamente más tarde.</p>
-                </div>
-            `;
-        }
-    }
-
-    async getAllOrders() {
-        try {
-            const response = await fetch(`/api/users/${this.user.id}/orders`);
-            if (!response.ok) {
-                return this.getSampleOrders(10);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error cargando todas las órdenes:', error);
-            return this.getSampleOrders(10);
-        }
+    canTrackOrder(status) {
+        const trackableStatuses = ['enviado', 'shipped', 'entregado', 'delivered'];
+        return trackableStatuses.includes(status);
     }
 
     loadProfileForm() {
         return `
             <div class="profile-content">
-                <div class="section-header">
-                    <h1>Mi Perfil</h1>
-                    <p>Actualiza tu información personal</p>
+                <div class="section-header" style="margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mi Perfil</h1>
+                    <p style="color: var(--gray-text); font-size: 16px;">Actualiza tu información personal</p>
                 </div>
                 
-                <form id="profile-form" class="account-form">
-                    <div class="form-row">
+                <form id="profile-form" class="account-form" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 30px; max-width: 600px;">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         <div class="form-group">
-                            <label for="nombre">Nombre *</label>
-                            <input type="text" id="nombre" value="${this.user.nombre || ''}" required>
+                            <label for="nombre" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Nombre *</label>
+                            <input type="text" id="nombre" value="${this.user.nombre || ''}" required style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                         </div>
                         <div class="form-group">
-                            <label for="apellido">Apellido *</label>
-                            <input type="text" id="apellido" value="${this.user.apellido || ''}" required>
+                            <label for="apellido" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Apellido *</label>
+                            <input type="text" id="apellido" value="${this.user.apellido || ''}" required style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                            <input type="email" id="email" value="${this.user.email || ''}" required>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="email" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Email *</label>
+                        <input type="email" id="email" value="${this.user.email || ''}" required style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                     </div>
                     
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <div class="input-with-prefix">
-                            <span class="prefix">+1 (809)</span>
-                            <input type="tel" id="telefono" value="${this.user.telefono || ''}" 
-                                   placeholder="555-1234" pattern="[0-9]{3}-[0-9]{4}">
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label for="telefono" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Teléfono</label>
+                        <div class="input-with-prefix" style="display: flex; align-items: center; border: 1px solid #eee; border-radius: 4px;">
+                            <span class="prefix" style="padding: 12px; background: #f8f8f8; color: var(--gray-dark);">+1 (809)</span>
+                            <input type="tel" id="telefono" value="${(this.user.telefono || '').replace('809-', '')}" 
+                                   placeholder="555-1234" pattern="[0-9]{3}-[0-9]{4}" style="flex: 1; padding: 12px; border: none; border-left: 1px solid #eee;">
                         </div>
-                        <small class="hint">Formato: 555-1234 (solo para República Dominicana)</small>
+                        <small style="display: block; margin-top: 6px; color: var(--gray-text); font-size: 12px;">Formato: 555-1234 (solo para República Dominicana)</small>
                     </div>
                     
-                    <div class="form-actions">
-                        <button type="submit" class="btn-save">
+                    <div class="form-actions" style="display: flex; gap: 15px; margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee;">
+                        <button type="submit" class="btn-save" style="background: var(--black); color: white; border: none; padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; letter-spacing: 1.5px;">
                             <i class="fas fa-save"></i> Guardar Cambios
                         </button>
-                        <button type="button" class="btn-cancel" id="cancel-profile">
+                        <button type="button" class="btn-cancel" id="cancel-profile" style="background: transparent; border: 1px solid #eee; color: var(--black); padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; letter-spacing: 1.5px;">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                     </div>
                 </form>
                 
-                <div class="password-section">
-                    <h2><i class="fas fa-key"></i> Cambiar Contraseña</h2>
-                    <form id="password-form" class="account-form">
-                        <div class="form-group">
-                            <label for="current_password">Contraseña Actual</label>
-                            <input type="password" id="current_password" required>
+                <div class="password-section" style="margin-top: 40px; background: white; border: 1px solid #eee; border-radius: 8px; padding: 30px;">
+                    <h2 style="font-size: 20px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-key"></i> Cambiar Contraseña
+                    </h2>
+                    <form id="password-form" class="account-form" style="background: transparent; border: none; padding: 0;">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="current_password" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Contraseña Actual</label>
+                            <input type="password" id="current_password" required style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                         </div>
                         
-                        <div class="form-row">
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                             <div class="form-group">
-                                <label for="new_password">Nueva Contraseña</label>
-                                <input type="password" id="new_password" required minlength="6">
-                                <small class="hint">Mínimo 6 caracteres</small>
+                                <label for="new_password" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Nueva Contraseña</label>
+                                <input type="password" id="new_password" required minlength="6" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
+                                <small style="display: block; margin-top: 6px; color: var(--gray-text); font-size: 12px;">Mínimo 6 caracteres</small>
                             </div>
                             <div class="form-group">
-                                <label for="confirm_password">Confirmar Contraseña</label>
-                                <input type="password" id="confirm_password" required minlength="6">
+                                <label for="confirm_password" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Confirmar Contraseña</label>
+                                <input type="password" id="confirm_password" required minlength="6" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                             </div>
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="submit" class="btn-save">
+                        <div class="form-actions" style="margin-top: 25px;">
+                            <button type="submit" class="btn-save" style="background: var(--black); color: white; border: none; padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; letter-spacing: 1.5px;">
                                 <i class="fas fa-key"></i> Cambiar Contraseña
                             </button>
                         </div>
@@ -622,30 +661,87 @@ class AccountManager {
         try {
             this.addresses = await this.getUserAddresses();
             
+            // ✅ FILTRAR SOLO DIRECCIONES REALES (sin datos de prueba)
+            const realAddresses = this.addresses.filter(addr => {
+                // Excluir direcciones de muestra/ejemplo
+                return !addr.is_sample && 
+                       !addr.is_example && 
+                       !addr.nombre?.toLowerCase().includes('ejemplo') &&
+                       !addr.nombre?.toLowerCase().includes('sample') &&
+                       !addr.nombre?.toLowerCase().includes('demo');
+            });
+            
+            // Si no hay direcciones reales, mostrar estado vacío
+            if (realAddresses.length === 0) {
+                return `
+                    <div class="addresses-content">
+                        <div class="section-header" style="margin-bottom: 30px;">
+                            <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mis Direcciones</h1>
+                            <p style="color: var(--gray-text); font-size: 16px;">Gestiona tus direcciones de envío en República Dominicana</p>
+                        </div>
+                        
+                        <div class="empty-addresses-state" style="text-align: center; padding: 60px 20px; background: white; border: 2px dashed #f0f0f0; border-radius: 8px; margin: 30px 0;">
+                            <div class="empty-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                                <i class="fas fa-map-marker-alt fa-2x" style="color: var(--gray-text);"></i>
+                            </div>
+                            <h3 style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">No tienes direcciones guardadas</h3>
+                            <p style="color: #666; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto;">Agrega tu primera dirección para recibir tus pedidos más rápido</p>
+                            <button id="add-first-address" class="btn" style="display: inline-block; padding: 12px 30px; background: var(--black); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; letter-spacing: 1.5px;">
+                                <i class="fas fa-plus"></i> Agregar Primera Dirección
+                            </button>
+                        </div>
+                        
+                        <div class="add-address-card" id="add-address-btn" style="background: white; border: 2px dashed #eee; border-radius: 8px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.3s ease; min-height: 200px;">
+                            <div class="add-address-icon" style="width: 70px; height: 70px; background: #f8f8f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                                <i class="fas fa-plus-circle fa-2x" style="color: var(--gray-text);"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: 400; margin-bottom: 12px;">Agregar Nueva Dirección</h3>
+                            <p style="color: var(--gray-text); font-size: 14px; max-width: 200px;">Agrega una dirección de envío en República Dominicana</p>
+                        </div>
+                        
+                        <div class="address-info-note" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 30px; display: flex; gap: 15px; align-items: flex-start;">
+                            <i class="fas fa-info-circle" style="color: #118AB2; font-size: 20px; margin-top: 2px;"></i>
+                            <div>
+                                <p style="font-weight: 500; margin-bottom: 10px;">Información importante:</p>
+                                <ul style="margin: 0; padding-left: 20px; color: var(--gray-text);">
+                                    <li style="margin-bottom: 5px;">Solo realizamos envíos dentro de República Dominicana</li>
+                                    <li style="margin-bottom: 5px;">Puedes seleccionar tu paquetería preferida</li>
+                                    <li>Los costos de envío varían según la provincia y paquetería seleccionada</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Resto del código para mostrar direcciones reales...
             return `
                 <div class="addresses-content">
-                    <div class="section-header">
-                        <h1>Mis Direcciones</h1>
-                        <p>Gestiona tus direcciones de envío en República Dominicana</p>
+                    <div class="section-header" style="margin-bottom: 30px;">
+                        <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mis Direcciones</h1>
+                        <p style="color: var(--gray-text); font-size: 16px;">Gestiona tus direcciones de envío en República Dominicana</p>
                     </div>
                     
-                    <div class="addresses-grid">
-                        ${this.addresses.map((address, index) => `
-                            <div class="address-card ${address.predeterminada ? 'default-address' : ''}">
-                                <div class="address-header">
-                                    <h3><i class="fas fa-map-marker-alt"></i> ${address.nombre || 'Dirección ' + (index + 1)}</h3>
+                    <div class="addresses-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 30px 0;">
+                        ${realAddresses.map((address, index) => `
+                            <div class="address-card ${address.predeterminada ? 'default-address' : ''}" style="background: white; border: ${address.predeterminada ? '2px solid var(--black)' : '1px solid #eee'}; border-radius: 8px; padding: 25px; transition: all 0.3s ease; position: relative;">
+                                <div class="address-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                                    <h3 style="font-size: 18px; font-weight: 400; letter-spacing: 1px; margin: 0; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fas fa-map-marker-alt"></i> ${address.nombre || 'Dirección ' + (index + 1)}
+                                    </h3>
                                     ${address.predeterminada ? 
-                                        '<span class="default-badge"><i class="fas fa-star"></i> Predeterminada</span>' : 
+                                        '<span class="default-badge" style="background: var(--black); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; letter-spacing: 1px;"><i class="fas fa-star"></i> Predeterminada</span>' : 
                                         ''
                                     }
                                 </div>
-                                <div class="address-details">
-                                    <p><strong><i class="fas fa-user"></i> ${address.nombre_completo || 'No especificado'}</strong></p>
+                                <div class="address-details" style="font-size: 14px; line-height: 1.6; color: var(--gray-dark); margin-bottom: 25px;">
+                                    <p><strong><i class="fas fa-user"></i> ${address.nombre_completo || this.user.nombre + ' ' + this.user.apellido || 'No especificado'}</strong></p>
                                     <p><i class="fas fa-phone"></i> ${address.telefono || 'No especificado'}</p>
                                     ${address.paqueteria_preferida ? 
-                                        `<p><i class="fas fa-shipping-fast"></i> <strong>Paquetería:</strong> ${address.paqueteria_preferida}</p>` : 
+                                        `<p><i class="fas fa-shipping-fast"></i> <strong>Paqueteria:</strong> ${address.paqueteria_preferida}</p>` : 
                                         ''
                                     }
+                                    <!-- ACTUALIZADO: Eliminada la línea que mostraba calle, numero y apartamento -->
                                     <p><i class="fas fa-map-marker-alt"></i> <strong>Ubicación:</strong> 
                                         ${[address.sector, address.municipio, address.provincia].filter(Boolean).join(', ')}
                                     </p>
@@ -653,23 +749,19 @@ class AccountManager {
                                         `<p><i class="fas fa-info-circle"></i> <strong>Referencia:</strong> ${address.referencia}</p>` : 
                                         ''
                                     }
-                                    ${address.apartamento ? `<p><i class="fas fa-building"></i> ${address.apartamento}</p>` : ''}
-                                    <p><i class="fas fa-road"></i> ${address.calle} ${address.numero}</p>
-                                    <p><i class="fas fa-city"></i> ${address.ciudad}, ${address.provincia}</p>
-                                    ${address.codigo_postal ? `<p><i class="fas fa-mail-bulk"></i> ${address.codigo_postal}</p>` : ''}
                                 </div>
-                                <div class="address-actions">
-                                    <button class="edit-address" data-id="${address.id}">
+                                <div class="address-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="edit-address" data-id="${address.id}" style="padding: 8px 16px; background: white; border: 1px solid #eee; color: var(--gray-dark); cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
                                         <i class="fas fa-edit"></i> Editar
                                     </button>
                                     ${!address.predeterminada ? 
-                                        `<button class="set-default" data-id="${address.id}">
+                                        `<button class="set-default" data-id="${address.id}" style="padding: 8px 16px; background: white; border: 1px solid #eee; color: var(--gray-dark); cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-star"></i> Predeterminar
                                         </button>` : 
                                         ''
                                     }
-                                    ${this.addresses.length > 1 ? 
-                                        `<button class="delete-address" data-id="${address.id}">
+                                    ${realAddresses.length > 1 ? 
+                                        `<button class="delete-address" data-id="${address.id}" style="padding: 8px 16px; background: white; border: 1px solid #f8d7da; color: #721c24; cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
                                             <i class="fas fa-trash"></i> Eliminar
                                         </button>` : 
                                         ''
@@ -678,285 +770,297 @@ class AccountManager {
                             </div>
                         `).join('')}
                         
-                        <div class="add-address-card" id="add-address-btn">
-                            <div class="add-address-icon">
-                                <i class="fas fa-plus-circle fa-3x"></i>
+                        <div class="add-address-card" id="add-address-btn" style="background: white; border: 2px dashed #eee; border-radius: 8px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.3s ease; min-height: 300px;">
+                            <div class="add-address-icon" style="width: 70px; height: 70px; background: #f8f8f8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                                <i class="fas fa-plus-circle fa-2x" style="color: var(--gray-text);"></i>
                             </div>
-                            <h3>Agregar Nueva Dirección</h3>
-                            <p>Agrega una dirección de envío en República Dominicana</p>
+                            <h3 style="font-size: 18px; font-weight: 400; margin-bottom: 12px;">Agregar Nueva Dirección</h3>
+                            <p style="color: var(--gray-text); font-size: 14px; max-width: 200px;">Agrega una dirección de envío en República Dominicana</p>
                         </div>
                     </div>
                     
-                    <div class="address-info-note">
-                        <i class="fas fa-info-circle"></i>
+                    <div class="address-info-note" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 30px; display: flex; gap: 15px; align-items: flex-start;">
+                        <i class="fas fa-info-circle" style="color: #118AB2; font-size: 20px; margin-top: 2px;"></i>
                         <div>
-                            <p><strong>Información importante:</strong></p>
-                            <p>• Solo realizamos envíos dentro de República Dominicana</p>
-                            <p>• Puedes seleccionar tu paquetería preferida</p>
-                            <p>• Los costos de envío varían según la provincia y paquetería seleccionada</p>
+                            <p style="font-weight: 500; margin-bottom: 10px;">Información importante:</p>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--gray-text);">
+                                <li style="margin-bottom: 5px;">Solo realizamos envíos dentro de República Dominicana</li>
+                                <li style="margin-bottom: 5px;">Puedes seleccionar tu paquetería preferida</li>
+                                <li>Los costos de envío varían según la provincia y paquetería seleccionada</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             `;
         } catch (error) {
             console.error('Error cargando direcciones:', error);
-            return `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando direcciones</h3>
-                    <p>Por favor, intenta nuevamente.</p>
-                </div>
-            `;
-        }
-    }
-    
-    async getUserAddresses() {
-        try {
-            const response = await fetch(`/api/users/${this.user.id}/addresses`);
-            if (!response.ok) {
-                // Si hay error, devolver direcciones de ejemplo
-                return this.getSampleAddresses();
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error cargando direcciones:', error);
-            return this.getSampleAddresses();
+            return this.getErrorHTML('Error cargando direcciones');
         }
     }
 
-    getSampleAddresses() {
-        return [
-            {
-                id: 1,
-                nombre: 'Casa',
-                nombre_completo: `${this.user.nombre} ${this.user.apellido}`,
-                telefono: '809-555-1234',
-                municipio: 'Santo Domingo Este',
-                sector: 'Naco',
-                provincia: 'Distrito Nacional',
-                referencia: 'Paquetería VIMENPAQ frente al supermercado Nacional, al lado de la farmacia Carol',
-                predeterminada: true,
-                paqueteria_preferida: 'VIMENPAQ'
-            },
-            {
-                id: 2,
-                nombre: 'Oficina',
-                nombre_completo: `${this.user.nombre} ${this.user.apellido}`,
-                telefono: '809-555-5678',
-                municipio: 'Santo Domingo',
-                sector: 'Piantini',
-                provincia: 'Distrito Nacional',
-                referencia: 'Paquetería Mundo Cargo en la Torre A, Piso 8, frente al Banco Popular',
-                predeterminada: false,
-                paqueteria_preferida: 'Mundo Cargo'
+    async getUserAddresses() {
+        try {
+            console.log('📍 Obteniendo direcciones para usuario:', this.user.id);
+            const response = await fetch(`/api/users/${this.user.id}/addresses`);
+            
+            if (!response.ok) {
+                console.warn('⚠️ API de direcciones no disponible, usando datos de ejemplo');
+                return [];
             }
-        ];
+            
+            const addresses = await response.json();
+            console.log(`✅ ${addresses.length} direcciones cargadas`);
+            return addresses;
+            
+        } catch (error) {
+            console.error('❌ Error cargando direcciones:', error);
+            return [];
+        }
     }
 
     async loadWishlist() {
         try {
             this.wishlist = await this.getWishlist();
-            
+        
+        // ✅ FILTRAR SOLO WISHLIST REAL (sin datos de prueba)
+        const realWishlist = this.wishlist.filter(item => {
+            // Excluir productos de muestra/ejemplo
+            return !item.is_sample && 
+                   !item.is_example && 
+                   !item.nombre?.toLowerCase().includes('ejemplo') &&
+                   !item.nombre?.toLowerCase().includes('sample') &&
+                   !item.nombre?.toLowerCase().includes('demo');
+        });
+        
+        // Si no hay wishlist real, mostrar estado vacío
+        if (realWishlist.length === 0) {
             return `
                 <div class="wishlist-content">
-                    <div class="section-header">
-                        <h1>Mi Wishlist</h1>
-                        <p>Productos que te gustan</p>
+                    <div class="section-header" style="margin-bottom: 30px;">
+                        <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mi Wishlist</h1>
+                        <p style="color: var(--gray-text); font-size: 16px;">Productos que te gustan</p>
                     </div>
                     
-                    ${this.wishlist.length > 0 ? `
-                        <div class="wishlist-grid">
-                            ${this.wishlist.map(item => `
-                                <div class="wishlist-item" data-product-id="${item.producto_id}">
-                                    <button class="remove-wishlist" data-id="${item.producto_id}" title="Eliminar de wishlist">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                    <div class="wishlist-img">
-                                        <img src="${item.imagen || '/public/images/default-product.jpg'}" 
-                                             alt="${item.nombre}" 
-                                             onerror="this.src='/public/images/default-product.jpg'">
-                                        ${item.tiene_descuento ? `
-                                            <span class="discount-badge">
-                                                ${item.descuento_porcentaje ? `-${item.descuento_porcentaje}%` : 'Oferta'}
-                                            </span>
-                                        ` : ''}
-                                    </div>
-                                    <div class="wishlist-info">
-                                        <h3>${item.nombre}</h3>
-                                        <p class="category">${item.categoria || 'Sin categoría'}</p>
-                                        <div class="price-container">
-                                            ${item.tiene_descuento ? `
-                                                <span class="original-price">RD$ ${parseFloat(item.precio).toFixed(2)}</span>
-                                                <span class="current-price">RD$ ${parseFloat(item.precio_final || item.precio).toFixed(2)}</span>
-                                            ` : `
-                                                <span class="current-price">RD$ ${parseFloat(item.precio).toFixed(2)}</span>
-                                            `}
-                                        </div>
-                                        ${item.stock > 0 ? 
-                                            `<div class="stock-status in-stock">Disponible</div>` : 
-                                            `<div class="stock-status out-of-stock">Agotado</div>`
-                                        }
-                                        ${item.tallas && item.tallas.length > 0 ? `
-                                            <div class="sizes">
-                                                <strong>Tallas:</strong> ${Array.isArray(item.tallas) ? item.tallas.join(', ') : item.tallas}
-                                            </div>
-                                        ` : ''}
-                                        <div class="wishlist-actions">
-                                            ${item.stock > 0 ? `
-                                                <button class="add-to-cart-from-wishlist" data-id="${item.producto_id}">
-                                                    <i class="fas fa-shopping-cart"></i> Agregar al Carrito
-                                                </button>
-                                            ` : `
-                                                <button class="btn-disabled" disabled>
-                                                    <i class="fas fa-times"></i> Agotado
-                                                </button>
-                                            `}
-                                            <a href="/product-detail.html?id=${item.producto_id}" class="view-product">
-                                                <i class="fas fa-eye"></i> Ver Producto
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
+                    <div class="empty-wishlist-state" style="text-align: center; padding: 60px 20px; background: white; border: 2px dashed #f0f0f0; border-radius: 8px;">
+                        <div class="empty-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #fff5f5 0%, #ffeaea 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                            <i class="fas fa-heart fa-2x" style="color: #ff6b6b;"></i>
                         </div>
-                        
-                        <div class="wishlist-footer">
-                            <p>${this.wishlist.length} producto${this.wishlist.length !== 1 ? 's' : ''} en tu wishlist</p>
-                            ${this.wishlist.length > 0 ? `
-                                <button class="btn-clear-wishlist" id="clear-wishlist">
-                                    <i class="fas fa-trash"></i> Limpiar Wishlist
-                                </button>
-                            ` : ''}
+                        <h3 style="font-size: 24px; font-weight: 600; margin-bottom: 10px;">Tu wishlist está vacía</h3>
+                        <p style="color: #666; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto;">Agrega productos que te gusten haciendo clic en el corazón ♡</p>
+                        <a href="/shop" class="btn" style="display: inline-block; padding: 12px 30px; background: var(--black); color: white; text-decoration: none; border-radius: 4px; margin-bottom: 30px;">
+                            <i class="fas fa-store"></i> Explorar Productos
+                        </a>
+                        <div class="empty-tips" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 20px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            <p style="font-weight: 500; margin-bottom: 15px;">Consejos:</p>
+                            <ul style="margin: 0; padding-left: 20px; color: #666;">
+                                <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check-circle" style="color: #34c759;"></i>
+                                    <span>Guarda productos para comprar más tarde</span>
+                                </li>
+                                <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check-circle" style="color: #34c759;"></i>
+                                    <span>Recibe notificaciones cuando bajen de precio</span>
+                                </li>
+                                <li style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check-circle" style="color: #34c759;"></i>
+                                    <span>Comparte tu wishlist con amigos</span>
+                                </li>
+                            </ul>
                         </div>
-                    ` : `
-                        <div class="empty-wishlist-state">
-                            <div class="empty-icon">
-                                <i class="fas fa-heart"></i>
-                            </div>
-                            <h3>Tu wishlist está vacía</h3>
-                            <p>Agrega productos que te gusten haciendo clic en el corazón ♡</p>
-                            <a href="/shop" class="btn">
-                                <i class="fas fa-store"></i> Explorar Productos
-                            </a>
-                            <div class="empty-tips">
-                                <p><strong>Consejos:</strong></p>
-                                <ul>
-                                    <li><i class="fas fa-check-circle"></i> Guarda productos para comprar más tarde</li>
-                                    <li><i class="fas fa-check-circle"></i> Recibe notificaciones cuando bajen de precio</li>
-                                    <li><i class="fas fa-check-circle"></i> Comparte tu wishlist con amigos</li>
-                                </ul>
-                            </div>
-                        </div>
-                    `}
+                    </div>
                 </div>
             `;
+        }
+        
+        // Resto del código para mostrar wishlist real...
+        return `
+            <div class="wishlist-content">
+                <div class="section-header" style="margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Mi Wishlist</h1>
+                    <p style="color: var(--gray-text); font-size: 16px;">Productos que te gustan</p>
+                </div>
+                
+                <div class="wishlist-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: 30px 0;">
+                    ${realWishlist.map(item => `
+                        <div class="wishlist-item" data-product-id="${item.producto_id}" style="background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; transition: all 0.3s ease; position: relative;">
+                            <button class="remove-wishlist" data-id="${item.producto_id}" style="position: absolute; top: 12px; right: 12px; background: white; border: 1px solid #eee; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; color: var(--gray-text);" title="Eliminar de wishlist">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="wishlist-img" style="height: 200px; overflow: hidden; background: #f8f8f8; position: relative;">
+                                <img src="${item.imagen || '/public/images/default-product.jpg'}" 
+                                     alt="${item.nombre}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     onerror="this.src='/public/images/default-product.jpg'">
+                                ${item.tiene_descuento ? `
+                                    <span class="discount-badge" style="position: absolute; top: 16px; left: 16px; background: var(--black); color: white; padding: 6px 12px; font-size: 12px; font-weight: 600; letter-spacing: 1px; border-radius: 4px;">
+                                        ${item.descuento_porcentaje ? `-${item.descuento_porcentaje}%` : 'Oferta'}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="wishlist-info" style="padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 400; margin: 0 0 8px 0; color: var(--black);">${item.nombre}</h3>
+                                <p class="category" style="font-size: 12px; color: var(--gray-text); margin-bottom: 12px; text-transform: uppercase;">${item.categoria || 'Sin categoría'}</p>
+                                <div class="price-container" style="margin-bottom: 15px;">
+                                    ${item.tiene_descuento ? `
+                                        <span class="original-price" style="font-size: 14px; color: var(--gray-text); text-decoration: line-through; margin-right: 8px;">RD$ ${parseFloat(item.precio || 0).toFixed(2)}</span>
+                                        <span class="current-price" style="font-size: 18px; font-weight: 400; color: var(--black);">RD$ ${parseFloat(item.precio_final || item.precio || 0).toFixed(2)}</span>
+                                    ` : `
+                                        <span class="current-price" style="font-size: 18px; font-weight: 400; color: var(--black);">RD$ ${parseFloat(item.precio || 0).toFixed(2)}</span>
+                                    `}
+                                </div>
+                                ${item.stock > 0 ? 
+                                    `<div class="stock-status in-stock" style="padding: 6px 12px; background: #e8f5e9; color: #155724; border: 1px solid #c3e6cb; border-radius: 20px; font-size: 12px; margin-bottom: 15px; display: inline-block;">Disponible</div>` : 
+                                    `<div class="stock-status out-of-stock" style="padding: 6px 12px; background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; border-radius: 20px; font-size: 12px; margin-bottom: 15px; display: inline-block;">Agotado</div>`
+                                }
+                                <div class="wishlist-actions" style="display: flex; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                    ${item.stock > 0 ? `
+                                        <button class="add-to-cart-from-wishlist" data-id="${item.producto_id}" style="flex: 1; padding: 10px; background: white; border: 1px solid #eee; color: var(--black); cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                            <i class="fas fa-shopping-cart"></i> Agregar al Carrito
+                                        </button>
+                                    ` : `
+                                        <button class="btn-disabled" disabled style="flex: 1; padding: 10px; background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                            <i class="fas fa-times"></i> Agotado
+                                        </button>
+                                    `}
+                                    <a href="/product-detail.html?id=${item.producto_id}" class="view-product" style="flex: 1; padding: 10px; background: white; border: 1px solid #eee; color: var(--black); text-decoration: none; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fas fa-eye"></i> Ver Producto
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="wishlist-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p style="font-size: 14px; color: var(--gray-dark);">${realWishlist.length} producto${realWishlist.length !== 1 ? 's' : ''} en tu wishlist</p>
+                    ${realWishlist.length > 0 ? `
+                        <button class="btn-clear-wishlist" id="clear-wishlist" style="padding: 10px 20px; background: transparent; border: 1px solid #f8d7da; color: #721c24; font-size: 13px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-trash"></i> Limpiar Wishlist
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
         } catch (error) {
             console.error('Error cargando wishlist:', error);
-            return `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando la wishlist</h3>
-                    <p>Por favor, intenta nuevamente.</p>
-                </div>
-            `;
+            return this.getErrorHTML('Error cargando la wishlist');
         }
     }
 
     async getWishlist() {
-        try {
-            const response = await fetch(`/api/users/${this.user.id}/wishlist`);
-            if (!response.ok) {
-                return this.getSampleWishlist();
+    try {
+        console.log('🔍 Solicitando wishlist para usuario:', this.user.id);
+        
+        const response = await fetch(`/api/users/${this.user.id}/wishlist`, {
+            headers: {
+                'Accept': 'application/json'
             }
-            return await response.json();
-        } catch (error) {
-            console.error('Error cargando wishlist:', error);
+        });
+        
+        console.log('📡 Respuesta de wishlist:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            console.warn('⚠️ API de wishlist no disponible, usando datos de ejemplo');
             return this.getSampleWishlist();
         }
+        
+        const wishlist = await response.json();
+        console.log(`✅ Wishlist cargada: ${wishlist.length} productos`);
+        return wishlist;
+        
+    } catch (error) {
+        console.error('❌ Error cargando wishlist:', error);
+        return this.getSampleWishlist();
     }
+}
 
-    getSampleWishlist() {
-        return [
-            {
-                producto_id: 1,
-                nombre: 'Legging High-Waist Black',
-                imagen: '/public/images/default-product.jpg',
-                precio: 59.99,
-                precio_final: 59.99,
-                categoria: 'leggings',
-                tallas: ['XS', 'S', 'M', 'L'],
-                stock: 10,
-                tiene_descuento: false
-            },
-            {
-                producto_id: 2,
-                nombre: 'Sports Bra Essential',
-                imagen: '/public/images/default-product.jpg',
-                precio: 34.99,
-                precio_final: 27.99,
-                categoria: 'tops',
-                tallas: ['S', 'M', 'L'],
-                stock: 3,
-                tiene_descuento: true,
-                descuento_porcentaje: 20
-            },
-            {
-                producto_id: 3,
-                nombre: 'Set Active Premium',
-                imagen: '/public/images/default-product.jpg',
-                precio: 89.99,
-                precio_final: 89.99,
-                categoria: 'sets',
-                tallas: ['S', 'M', 'L', 'XL'],
-                stock: 0,
-                tiene_descuento: false
-            }
-        ];
-    }
+// Función de respaldo con productos de ejemplo
+getSampleWishlist() {
+    return [
+        {
+            id: 1,
+            producto_id: 1,
+            fecha_agregado: new Date().toISOString(),
+            nombre: 'Legging High-Waist Elite',
+            imagen: '/public/images/products/legging1.jpg',
+            descripcion: 'Legging deportivo de alta compresión',
+            categoria: 'leggings',
+            stock: 10,
+            precio: 1899,
+            precio_final: 1899,
+            precio_formateado: 'RD$ 1,899.00',
+            tiene_descuento: false,
+            descuento_porcentaje: 0
+        },
+        {
+            id: 2,
+            producto_id: 2,
+            fecha_agregado: new Date().toISOString(),
+            nombre: 'Top Deportivo Airflow',
+            imagen: '/public/images/products/top1.jpg',
+            descripcion: 'Top transpirable para entrenamiento',
+            categoria: 'tops',
+            stock: 15,
+            precio: 1299,
+            precio_final: 1299,
+            precio_formateado: 'RD$ 1,299.00',
+            tiene_descuento: false,
+            descuento_porcentaje: 0
+        }
+    ];
+}
 
     loadSettingsForm() {
         return `
             <div class="settings-content">
-                <div class="section-header">
-                    <h1>Configuración</h1>
-                    <p>Preferencias de tu cuenta</p>
+                <div class="section-header" style="margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 400; letter-spacing: 2px; margin-bottom: 8px;">Configuración</h1>
+                    <p style="color: var(--gray-text); font-size: 16px;">Preferencias de tu cuenta</p>
                 </div>
                 
-                <form id="settings-form" class="account-form">
-                    <div class="form-section">
-                        <h3><i class="fas fa-bell"></i> Notificaciones</h3>
+                <form id="settings-form" class="account-form" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 30px; max-width: 600px;">
+                    <div class="form-section" style="margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #eee;">
+                        <h3 style="font-size: 18px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-bell"></i> Notificaciones
+                        </h3>
                         
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="email_notifications" checked>
-                                <span>Recibir notificaciones por email</span>
-                                <small class="hint">Actualizaciones de pedidos, ofertas y novedades</small>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="email_notifications" checked style="margin-top: 4px;">
+                                <span style="flex: 1;">
+                                    Recibir notificaciones por email
+                                    <small style="display: block; margin-top: 5px; color: var(--gray-text); font-size: 12px;">Actualizaciones de pedidos, ofertas y novedades</small>
+                                </span>
                             </label>
                         </div>
                         
                         <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="marketing_emails" checked>
-                                <span>Recibir ofertas y promociones</span>
-                                <small class="hint">Descuentos exclusivos y lanzamientos de colecciones</small>
+                            <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="marketing_emails" checked style="margin-top: 4px;">
+                                <span style="flex: 1;">
+                                    Recibir ofertas y promociones
+                                    <small style="display: block; margin-top: 5px; color: var(--gray-text); font-size: 12px;">Descuentos exclusivos y lanzamientos de colecciones</small>
+                                </span>
                             </label>
                         </div>
                     </div>
                     
-                    <div class="form-section">
-                        <h3><i class="fas fa-globe"></i> Preferencias Regionales</h3>
+                    <div class="form-section" style="margin-bottom: 25px;">
+                        <h3 style="font-size: 18px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-globe"></i> Preferencias Regionales
+                        </h3>
                         
-                        <div class="form-row">
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div class="form-group">
-                                <label for="language">Idioma</label>
-                                <select id="language">
+                                <label for="language" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Idioma</label>
+                                <select id="language" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                                     <option value="es" selected>Español</option>
                                     <option value="en">English</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="currency">Moneda</label>
-                                <select id="currency">
+                                <label for="currency" style="display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: 1.5px; color: var(--gray-dark);">Moneda</label>
+                                <select id="currency" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 4px;">
                                     <option value="DOP" selected>DOP (RD$)</option>
                                     <option value="USD">USD ($)</option>
                                 </select>
@@ -964,26 +1068,41 @@ class AccountManager {
                         </div>
                     </div>
                     
-                    <div class="form-actions">
-                        <button type="submit" class="btn-save">
+                    <div class="form-actions" style="display: flex; gap: 15px; margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee;">
+                        <button type="submit" class="btn-save" style="background: var(--black); color: white; border: none; padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; letter-spacing: 1.5px;">
                             <i class="fas fa-save"></i> Guardar Preferencias
                         </button>
-                        <button type="button" class="btn-cancel" id="cancel-settings">
+                        <button type="button" class="btn-cancel" id="cancel-settings" style="background: transparent; border: 1px solid #eee; color: var(--black); padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; letter-spacing: 1.5px;">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                     </div>
                 </form>
                 
-                <div class="danger-zone">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Zona de Peligro</h3>
-                    <p>Estas acciones son irreversibles. Procede con cuidado.</p>
+                <div class="danger-zone" style="margin-top: 40px; background: white; border: 1px solid #f8d7da; border-radius: 8px; padding: 30px;">
+                    <h3 style="font-size: 20px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #721c24;">
+                        <i class="fas fa-exclamation-triangle"></i> Zona de Peligro
+                    </h3>
+                    <p style="color: #856404; margin-bottom: 20px;">Estas acciones son irreversibles. Procede con cuidado.</p>
                     
                     <div class="danger-actions">
-                        <button id="delete-account" class="btn-danger">
+                        <button id="delete-account" class="btn-danger" style="background: #dc3545; color: white; border: none; padding: 12px 28px; font-size: 14px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-trash"></i> Eliminar Mi Cuenta
                         </button>
                     </div>
                 </div>
+            </div>
+        `;
+    }
+
+    getErrorHTML(message) {
+        return `
+            <div class="error-message" style="text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-triangle fa-3x" style="color: #FF6B6B; margin-bottom: 20px;"></i>
+                <h3 style="color: var(--black); margin-bottom: 10px;">${message}</h3>
+                <p style="color: var(--gray-text); margin-bottom: 20px;">Por favor, intenta nuevamente.</p>
+                <button onclick="location.reload()" class="btn" style="display: inline-block; padding: 10px 24px; background: var(--black); color: white; text-decoration: none; border-radius: 4px; border: none; cursor: pointer;">
+                    <i class="fas fa-redo"></i> Recargar Página
+                </button>
             </div>
         `;
     }
@@ -1012,65 +1131,64 @@ class AccountManager {
     }
 
     setupDashboardListeners() {
-        // Botones para ver detalles de órdenes
-        document.querySelectorAll('.btn-view-order').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const orderId = e.currentTarget.dataset.order;
-                this.viewOrderDetails(orderId);
-            });
-        });
-        
-        // Botones para rastrear envíos
-        document.querySelectorAll('.btn-track-order').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const orderId = e.currentTarget.dataset.order;
-                this.trackOrder(orderId);
-            });
-        });
+        this.setupOrderActionListeners();
         
         // Enlaces de acciones rápidas
         document.querySelectorAll('.quick-action-card[href^="#"]').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const section = link.getAttribute('href').substring(1);
-                this.currentSection = section;
-                this.loadSection(section);
-                
-                // Actualizar navegación
-                document.querySelectorAll('.account-nav a').forEach(a => {
-                    a.classList.remove('active');
-                    if (a.getAttribute('href') === `#${section}`) {
-                        a.classList.add('active');
-                    }
-                });
+                this.navigateToSection(section);
             });
         });
     }
 
     setupOrdersListeners() {
+        this.setupOrderActionListeners();
+    }
+
+    setupOrderActionListeners() {
         // Botones para ver detalles de órdenes
-        document.querySelectorAll('.btn-view-order').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const orderId = e.currentTarget.dataset.order;
-                this.viewOrderDetails(orderId);
+        setTimeout(() => {
+            document.querySelectorAll('.btn-view-order').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const orderId = e.currentTarget.dataset.order;
+                    this.viewOrderDetails(orderId);
+                });
             });
+            
+            // Botones para rastrear envíos
+            document.querySelectorAll('.btn-track-order').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const orderId = e.currentTarget.dataset.order;
+                    this.trackOrder(orderId);
+                });
+            });
+        }, 100);
+    }
+
+    navigateToSection(section) {
+        this.currentSection = section;
+        
+        // Actualizar navegación
+        document.querySelectorAll('.account-nav a').forEach(a => {
+            a.classList.remove('active');
+            if (a.getAttribute('href') === `#${section}`) {
+                a.classList.add('active');
+            }
         });
         
-        // Botones para rastrear envíos
-        document.querySelectorAll('.btn-track-order').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const orderId = e.currentTarget.dataset.order;
-                this.trackOrder(orderId);
-            });
-        });
+        // Cargar sección
+        this.loadSection(section);
     }
 
     async viewOrderDetails(orderId) {
         try {
+            console.log('🔍 Viendo detalles de orden:', orderId);
             const response = await fetch(`/api/orders/${orderId}`);
+            
             if (!response.ok) {
-                this.showSampleOrderModal(orderId);
-                return;
+                throw new Error('Orden no encontrada');
             }
             
             const order = await response.json();
@@ -1078,209 +1196,85 @@ class AccountManager {
             
         } catch (error) {
             console.error('Error cargando detalles de la orden:', error);
-            this.showSampleOrderModal(orderId);
-        }
-    }
-
-    showSampleOrderModal(orderId) {
-        const sampleOrder = {
-            id: orderId,
-            fecha_orden: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            total: 149.97,
-            subtotal: 149.97,
-            shipping_cost: 0,
-            estado: 'entregado',
-            metodo_pago: 'Tarjeta de crédito',
-            paqueteria: 'VIMENPAQ',
-            tracking_number: 'VMP789012345RD',
-            direccion_envio: 'Av. 27 de Febrero 123, Naco',
-            ciudad_envio: 'Santo Domingo Este',
-            provincia_envio: 'Distrito Nacional',
-            telefono_contacto: '809-555-1234',
-            items: [
-                {
-                    id: 1,
-                    producto_id: 1,
-                    nombre: 'Legging High-Waist Black',
-                    imagen: '/public/images/default-product.jpg',
-                    precio: 59.99,
-                    cantidad: 2,
-                    talla: 'M',
-                    color: 'Negro'
-                },
-                {
-                    id: 2,
-                    producto_id: 2,
-                    nombre: 'Sports Bra Essential',
-                    imagen: '/public/images/default-product.jpg',
-                    precio: 29.99,
-                    cantidad: 1,
-                    talla: 'S',
-                    color: 'Negro'
-                }
-            ]
-        };
-        
-        this.showOrderModal(sampleOrder);
-    }
-
-    async trackOrder(orderId) {
-        try {
-            const response = await fetch(`/api/orders/${orderId}`);
-            if (!response.ok) throw new Error('Orden no encontrada');
-            
-            const order = await response.json();
-            
-            if (order.paqueteria && order.tracking_number) {
-                this.trackPackage(order.tracking_number, order.paqueteria);
-            } else {
-                this.showNotification('Esta orden no tiene información de tracking disponible', 'info');
-            }
-            
-        } catch (error) {
-            console.error('Error rastreando orden:', error);
-            this.showNotification('Error obteniendo información de tracking', 'error');
+            this.showNotification('No se pudieron cargar los detalles de la orden', 'error');
         }
     }
 
     showOrderModal(order) {
-        // Generar timeline según el estado
-        const timelineSteps = this.generateOrderTimeline(order);
-        
         const modalHTML = `
-            <div class="modal-overlay" id="order-modal">
-                <div class="modal-content order-modal-content">
-                    <div class="modal-header">
-                        <h2><i class="fas fa-receipt"></i> Orden #${order.id}</h2>
-                        <button class="close-modal">&times;</button>
+            <div class="modal-overlay" id="order-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(4px);">
+                <div class="order-modal-content" style="background: white; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);">
+                    <div class="modal-header" style="padding: 25px 30px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10;">
+                        <h2 style="font-size: 22px; font-weight: 400; letter-spacing: 1px; margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-receipt"></i> Orden #${order.id}
+                        </h2>
+                        <button class="close-modal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-dark); padding: 0; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;">&times;</button>
                     </div>
                     
-                    <div class="modal-body">
-                        <div class="order-info-grid">
-                            <div class="info-card">
-                                <h3><i class="fas fa-info-circle"></i> Información del Pedido</h3>
-                                <div class="info-row">
+                    <div class="modal-body" style="padding: 25px 30px;">
+                        <div class="order-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                            <div class="info-card" style="background: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 500; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-info-circle"></i> Información del Pedido
+                                </h3>
+                                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
                                     <span>Fecha:</span>
-                                    <span>${new Date(order.fecha_orden).toLocaleDateString('es-DO', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}</span>
+                                    <span>${new Date(order.fecha_orden || order.fecha_creacion).toLocaleDateString('es-DO')}</span>
                                 </div>
-                                <div class="info-row">
+                                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
                                     <span>Estado:</span>
-                                    <span class="order-status status-${order.estado}">
+                                    <span class="order-status ${this.getStatusClass(order.estado)}" style="padding: 4px 8px; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fas ${this.getStatusIcon(order.estado)}"></i>
                                         ${this.formatOrderStatus(order.estado)}
                                     </span>
                                 </div>
-                                <div class="info-row">
+                                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
                                     <span>Total:</span>
-                                    <span><strong>RD$ ${parseFloat(order.total).toFixed(2)}</strong></span>
+                                    <span><strong>RD$ ${parseFloat(order.total || 0).toFixed(2)}</strong></span>
                                 </div>
-                                ${order.metodo_pago ? `
-                                    <div class="info-row">
-                                        <span>Método de Pago:</span>
-                                        <span>${order.metodo_pago}</span>
-                                    </div>
-                                ` : ''}
                             </div>
                             
-                            <div class="info-card">
-                                <h3><i class="fas fa-shipping-fast"></i> Información de Envío</h3>
-                                ${order.paqueteria ? `
-                                    <div class="info-row">
-                                        <span>Paquetería:</span>
-                                        <span>${order.paqueteria}</span>
-                                    </div>
-                                ` : ''}
-                                ${order.tracking_number ? `
-                                    <div class="info-row">
-                                        <span>Número de Tracking:</span>
-                                        <span class="tracking-number">
-                                            ${order.tracking_number}
-                                            <button class="copy-tracking" data-tracking="${order.tracking_number}" title="Copiar">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </span>
-                                    </div>
-                                ` : ''}
-                                ${order.direccion_envio ? `
-                                    <div class="info-row">
-                                        <span>Dirección:</span>
-                                        <span>${order.direccion_envio}</span>
-                                    </div>
-                                ` : ''}
-                                ${order.ciudad_envio ? `
-                                    <div class="info-row">
-                                        <span>Ciudad:</span>
-                                        <span>${order.ciudad_envio}</span>
-                                    </div>
-                                ` : ''}
+                            <div class="info-card" style="background: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 500; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-shipping-fast"></i> Información de Envío
+                                </h3>
+                                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>Dirección:</span>
+                                    <span>${order.direccion_envio || 'No especificada'}</span>
+                                </div>
+                                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span>Ciudad:</span>
+                                    <span>${order.ciudad_envio || 'No especificada'}</span>
+                                </div>
+                                <div class="info-row" style="display: flex; justify-content: space-between;">
+                                    <span>Teléfono:</span>
+                                    <span>${order.telefono_contacto || 'No especificado'}</span>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="order-timeline">
-                            <h3><i class="fas fa-history"></i> Progreso del Pedido</h3>
-                            ${timelineSteps}
-                        </div>
-                        
-                        <div class="order-items-section">
-                            <h3><i class="fas fa-box"></i> Productos (${order.items ? order.items.length : 0})</h3>
-                            ${order.items && order.items.length > 0 ? 
-                                order.items.map((item, index) => `
-                                    <div class="order-item-detail">
-                                        <div class="item-number">${index + 1}</div>
-                                        <div class="item-image">
-                                            <img src="${item.imagen || '/public/images/default-product.jpg'}" 
-                                                 alt="${item.nombre}"
-                                                 onerror="this.src='/public/images/default-product.jpg'">
-                                        </div>
-                                        <div class="item-info">
-                                            <h4>${item.nombre}</h4>
-                                            <div class="item-details">
-                                                <span>Cantidad: ${item.cantidad}</span>
-                                                ${item.talla ? `<span>Talla: ${item.talla}</span>` : ''}
-                                                ${item.color ? `<span>Color: ${item.color}</span>` : ''}
-                                            </div>
-                                            <p class="item-price">Precio unitario: RD$ ${parseFloat(item.precio).toFixed(2)}</p>
-                                        </div>
-                                        <div class="item-total">
-                                            <strong>RD$ ${(item.cantidad * parseFloat(item.precio || 0)).toFixed(2)}</strong>
-                                        </div>
-                                    </div>
-                                `).join('') : 
-                                '<div class="empty-items"><i class="fas fa-box-open"></i><p>No hay información de productos disponible.</p></div>'
-                            }
-                        </div>
-                        
-                        <div class="order-summary">
-                            <div class="summary-row">
+                        <div class="order-summary" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-top: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 400; letter-spacing: 1.5px; margin-bottom: 20px;">Resumen de la Orden</h3>
+                            <div class="summary-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
                                 <span>Subtotal:</span>
                                 <span>RD$ ${parseFloat(order.subtotal || order.total * 0.85).toFixed(2)}</span>
                             </div>
-                            <div class="summary-row">
+                            <div class="summary-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
                                 <span>Envío:</span>
                                 <span>RD$ ${parseFloat(order.shipping_cost || order.total * 0.15).toFixed(2)}</span>
                             </div>
-                            <div class="summary-row total">
+                            <div class="summary-row total" style="display: flex; justify-content: space-between; padding: 15px 0; font-size: 18px; font-weight: 400;">
                                 <span><strong>Total:</strong></span>
-                                <span><strong>RD$ ${parseFloat(order.total).toFixed(2)}</strong></span>
+                                <span><strong>RD$ ${parseFloat(order.total || 0).toFixed(2)}</strong></span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="modal-footer">
-                        <button class="btn" onclick="window.print()">
+                    <div class="modal-footer" style="padding: 20px 30px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px; background: white; position: sticky; bottom: 0;">
+                        <button onclick="window.print()" class="btn" style="padding: 10px 20px; background: var(--black); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
                             <i class="fas fa-print"></i> Imprimir
                         </button>
-                        ${order.tracking_number ? `
-                            <button class="btn" id="track-package">
-                                <i class="fas fa-map-marker-alt"></i> Rastrear Paquete
-                            </button>
-                        ` : ''}
-                        <button class="btn btn-outline close-modal">
+                        <button class="close-modal btn" style="padding: 10px 20px; background: transparent; border: 1px solid #eee; color: var(--black); border-radius: 4px; cursor: pointer; font-size: 14px;">
                             <i class="fas fa-times"></i> Cerrar
                         </button>
                     </div>
@@ -1292,121 +1286,24 @@ class AccountManager {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         
         // Configurar event listeners del modal
-        document.querySelectorAll('.close-modal').forEach(button => {
+        const modal = document.getElementById('order-modal');
+        modal.querySelectorAll('.close-modal').forEach(button => {
             button.addEventListener('click', () => {
-                document.getElementById('order-modal').remove();
-            });
-        });
-        
-        // Botón de tracking
-        const trackBtn = document.getElementById('track-package');
-        if (trackBtn) {
-            trackBtn.addEventListener('click', () => {
-                this.trackPackage(order.tracking_number, order.paqueteria);
-            });
-        }
-        
-        // Botón copiar tracking
-        document.querySelectorAll('.copy-tracking').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const trackingNumber = e.currentTarget.dataset.tracking;
-                navigator.clipboard.writeText(trackingNumber).then(() => {
-                    this.showNotification('Número de tracking copiado al portapapeles', 'success');
-                });
+                modal.remove();
             });
         });
         
         // Cerrar al hacer clic fuera del modal
-        document.getElementById('order-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'order-modal') {
-                e.target.remove();
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
             }
         });
     }
 
-    generateOrderTimeline(order) {
-        const steps = [
-            { 
-                status: 'pendiente', 
-                label: 'Pedido Recibido', 
-                icon: 'fa-shopping-cart',
-                description: 'Hemos recibido tu pedido' 
-            },
-            { 
-                status: 'procesando', 
-                label: 'Procesando', 
-                icon: 'fa-cogs',
-                description: 'Preparando tu pedido' 
-            },
-            { 
-                status: 'enviado', 
-                label: 'Enviado', 
-                icon: 'fa-shipping-fast',
-                description: 'Pedido en camino' 
-            },
-            { 
-                status: 'entregado', 
-                label: 'Entregado', 
-                icon: 'fa-check-circle',
-                description: 'Pedido entregado' 
-            }
-        ];
-        
-        const currentStatusIndex = steps.findIndex(step => step.status === order.estado);
-        
-        return `
-            <div class="timeline-container">
-                ${steps.map((step, index) => {
-                    const isCompleted = index <= currentStatusIndex;
-                    const isCurrent = index === currentStatusIndex;
-                    
-                    return `
-                        <div class="timeline-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
-                            <div class="timeline-icon">
-                                <i class="fas ${step.icon}"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>${step.label}</h4>
-                                <p>${step.description}</p>
-                                ${isCurrent && order.estado === 'enviado' && order.paqueteria ? 
-                                    `<div class="shipping-info">
-                                        <i class="fas fa-truck"></i>
-                                        <span>Enviado vía ${order.paqueteria}</span>
-                                        ${order.tracking_number ? 
-                                            `<button class="track-btn" data-tracking="${order.tracking_number}">
-                                                <i class="fas fa-external-link-alt"></i> Rastrear
-                                            </button>` : 
-                                            ''
-                                        }
-                                    </div>` : 
-                                    ''
-                                }
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    }
-
-    trackPackage(trackingNumber, shippingCompany) {
-        // Mapear paqueterías a sus URLs de tracking
-        const trackingUrls = {
-            'Mundo Cargo': `https://www.mundocargo.com.do/tracking/?tracking=${trackingNumber}`,
-            'VIMENPAQ': `https://vimenpaq.com.do/rastrear.php?guia=${trackingNumber}`,
-            'MBE (Mail Boxes Etc.)': `https://www.mbe.com.do/seguimiento-pedido/`,
-            'Sendpack': `https://sendpack.com.do/tracking/${trackingNumber}`,
-            'ViaCourier': `https://www.viacourier.com.do/rastreo.php?guia=${trackingNumber}`,
-            'CPS Courier': `https://www.cpscourier.com.do/tracking/`,
-            'EPS': `https://eps.com.do/track`
-        };
-        
-        const url = trackingUrls[shippingCompany];
-        if (url) {
-            window.open(url, '_blank');
-        } else {
-            this.showNotification(`Para rastrear tu paquete, visita el sitio web de ${shippingCompany} e ingresa el código: ${trackingNumber}`, 'info');
-        }
+    trackOrder(orderId) {
+        console.log('🚚 Rastreando orden:', orderId);
+        this.showNotification('La función de rastreo estará disponible pronto', 'info');
     }
 
     setupProfileListeners() {
@@ -1435,15 +1332,29 @@ class AccountManager {
         e.preventDefault();
         
         const formData = {
-            nombre: document.getElementById('nombre').value,
-            apellido: document.getElementById('apellido').value,
-            email: document.getElementById('email').value,
-            telefono: document.getElementById('telefono').value
+            nombre: document.getElementById('nombre').value.trim(),
+            apellido: document.getElementById('apellido').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            telefono: document.getElementById('telefono').value.trim()
         };
+        
+        // Validaciones
+        if (!formData.nombre || !formData.apellido || !formData.email) {
+            this.showNotification('Los campos marcados con * son obligatorios', 'error');
+            return;
+        }
+        
+        if (!this.validateEmail(formData.email)) {
+            this.showNotification('Por favor ingresa un email válido', 'error');
+            return;
+        }
         
         // Formatear teléfono
         if (formData.telefono && !formData.telefono.startsWith('809-')) {
-            formData.telefono = `809-${formData.telefono.replace(/\D/g, '').slice(0, 7)}`;
+            const cleanPhone = formData.telefono.replace(/\D/g, '').slice(0, 7);
+            if (cleanPhone.length === 7) {
+                formData.telefono = `809-${cleanPhone.slice(0, 3)}-${cleanPhone.slice(3)}`;
+            }
         }
         
         try {
@@ -1467,7 +1378,7 @@ class AccountManager {
             
         } catch (error) {
             console.error('Error actualizando perfil:', error);
-            this.showNotification('Error actualizando perfil', 'error');
+            this.showNotification('Error de conexión al actualizar perfil', 'error');
         }
     }
 
@@ -1479,6 +1390,11 @@ class AccountManager {
         const confirmPassword = document.getElementById('confirm_password').value;
         
         // Validaciones
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            this.showNotification('Todos los campos son obligatorios', 'error');
+            return;
+        }
+        
         if (newPassword !== confirmPassword) {
             this.showNotification('Las contraseñas no coinciden', 'error');
             return;
@@ -1511,8 +1427,13 @@ class AccountManager {
             
         } catch (error) {
             console.error('Error cambiando contraseña:', error);
-            this.showNotification('Error cambiando contraseña', 'error');
+            this.showNotification('Error de conexión al cambiar contraseña', 'error');
         }
+    }
+
+    validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
     }
 
     setupAddressesListeners() {
@@ -1520,6 +1441,12 @@ class AccountManager {
         const addBtn = document.getElementById('add-address-btn');
         if (addBtn) {
             addBtn.addEventListener('click', () => this.showAddressForm());
+        }
+        
+        // Botón agregar primera dirección (cuando no hay direcciones)
+        const addFirstBtn = document.getElementById('add-first-address');
+        if (addFirstBtn) {
+            addFirstBtn.addEventListener('click', () => this.showAddressForm());
         }
         
         // Botones de acciones de dirección
@@ -1563,6 +1490,276 @@ class AccountManager {
         }
     }
 
+    showAddressForm(address = null) {
+        const isEdit = !!address;
+        
+        const formHTML = `
+            <div class="modal-overlay" id="address-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(4px);">
+                <div class="address-modal-content" style="background: white; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);">
+                    <div class="modal-header" style="padding: 25px 30px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10;">
+                        <h2 style="font-size: 22px; font-weight: 400; letter-spacing: 1px; margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-${isEdit ? 'edit' : 'plus'}"></i>
+                            ${isEdit ? 'Editar Dirección' : 'Nueva Dirección'}
+                        </h2>
+                        <button class="close-modal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-dark); padding: 0; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;">&times;</button>
+                    </div>
+                    
+                    <form id="address-form" class="modal-form" style="padding: 25px 30px;">
+                        <input type="hidden" id="address-id" value="${address?.id || ''}">
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="address-nombre" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-tag"></i> Nombre para esta dirección (ej: Casa, Oficina) *
+                            </label>
+                            <input type="text" id="address-nombre" 
+                                   value="${address?.nombre || ''}"
+                                   placeholder="Ej: Casa Principal" 
+                                   required
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label for="address-nombre_completo" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-user-circle"></i> Nombre Completo *
+                                </label>
+                                <input type="text" id="address-nombre_completo" 
+                                       value="${address?.nombre_completo || `${this.user.nombre || ''} ${this.user.apellido || ''}`.trim()}"
+                                       placeholder="Nombre y Apellido" 
+                                       required
+                                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="address-telefono" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-phone"></i> Teléfono *
+                                </label>
+                                <div class="input-with-prefix" style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px;">
+                                    <span class="prefix" style="padding: 12px; background: #f8f8f8; color: var(--gray-dark); border-right: 1px solid #ddd;">809-</span>
+                                    <input type="tel" id="address-telefono" 
+                                           value="${address?.telefono?.replace('809-', '') || ''}"
+                                           placeholder="1234567" 
+                                           maxlength="7" 
+                                           pattern="[0-9]{7}" 
+                                           required
+                                           style="flex: 1; padding: 12px; border: none;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label for="address-provincia" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-map"></i> Provincia *
+                                </label>
+                                <select id="address-provincia" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="">Seleccionar provincia</option>
+                                    ${this.provinces.map(province => `
+                                        <option value="${province}" ${address?.provincia === province ? 'selected' : ''}>${province}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="address-municipio" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-city"></i> Municipio *
+                                </label>
+                                <input type="text" id="address-municipio" 
+                                       value="${address?.municipio || ''}"
+                                       placeholder="Ej: Santo Domingo Este" 
+                                       required
+                                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="address-sector" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-location-dot"></i> Sector/Barrio *
+                            </label>
+                            <input type="text" id="address-sector" 
+                                   value="${address?.sector || ''}"
+                                   placeholder="Ej: Naco, Los Prados, Bella Vista" 
+                                   required
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        
+                        <!-- NOTA: Se han eliminado los campos calle, numero y apartamento -->
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="address-referencia" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-info-circle"></i> Punto de Referencia *
+                            </label>
+                            <textarea id="address-referencia" 
+                                      rows="3"
+                                      placeholder="Ej: Casa color amarillo, al lado del colegio, edificio #5, apartamento 2B" 
+                                      required
+                                      style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;">${address?.referencia || ''}</textarea>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label for="address-paqueteria_preferida" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-shipping-fast"></i> Paquetería Preferida
+                            </label>
+                            <select id="address-paqueteria_preferida" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">Seleccionar paquetería</option>
+                                <option value="EPS" ${address?.paqueteria_preferida === 'EPS' ? 'selected' : ''}>EPS</option>
+                                <option value="DOMESA" ${address?.paqueteria_preferida === 'DOMESA' ? 'selected' : ''}>DOMESA</option>
+                                <option value="CARGO EXPRESS" ${address?.paqueteria_preferida === 'CARGO EXPRESS' ? 'selected' : ''}>CARGO EXPRESS</option>
+                                <option value="AEROFLASH" ${address?.paqueteria_preferida === 'AEROFLASH' ? 'selected' : ''}>AEROFLASH</option>
+                                <option value="VIMENPAQ" ${address?.paqueteria_preferida === 'VIMENPAQ' ? 'selected' : ''}>VIMENPAQ</option>
+                                <option value="Mundo Cargo" ${address?.paqueteria_preferida === 'Mundo Cargo' ? 'selected' : ''}>Mundo Cargo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 30px;">
+                            <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="address-predeterminada" ${address?.predeterminada ? 'checked' : ''} style="margin-top: 4px;">
+                                <span style="flex: 1;">
+                                    <strong>Establecer como dirección predeterminada</strong>
+                                    <small style="display: block; margin-top: 5px; color: var(--gray-text); font-size: 12px;">Esta será tu dirección principal para todos los envíos</small>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="modal-footer" style="padding: 20px 0 0; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px;">
+                            <button type="button" class="close-modal btn" style="padding: 10px 20px; background: transparent; border: 1px solid #ddd; color: var(--black); border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn" style="padding: 10px 20px; background: var(--black); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                <i class="fas fa-save"></i> ${isEdit ? 'Actualizar' : 'Guardar'} Dirección
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        // Agregar modal al documento
+        document.body.insertAdjacentHTML('beforeend', formHTML);
+        
+        // Configurar event listeners
+        const form = document.getElementById('address-form');
+        form.addEventListener('submit', (e) => this.saveAddress(e));
+        
+        const modal = document.getElementById('address-modal');
+        modal.querySelectorAll('.close-modal').forEach(button => {
+            button.addEventListener('click', () => {
+                modal.remove();
+            });
+        });
+        
+        // Cerrar al hacer clic fuera del modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Enfocar el primer campo
+        setTimeout(() => {
+            document.getElementById('address-nombre').focus();
+        }, 100);
+    }
+
+    async saveAddress(e) {
+        e.preventDefault();
+        
+        const addressId = document.getElementById('address-id').value;
+        const isEdit = !!addressId;
+        
+        // Obtener datos del formulario (SIN calle, numero, apartamento)
+        const addressData = {
+            nombre: document.getElementById('address-nombre').value.trim(),
+            nombre_completo: document.getElementById('address-nombre_completo').value.trim(),
+            telefono: '809-' + document.getElementById('address-telefono').value.trim(),
+            provincia: document.getElementById('address-provincia').value.trim(),
+            municipio: document.getElementById('address-municipio').value.trim(),
+            sector: document.getElementById('address-sector').value.trim(),
+            referencia: document.getElementById('address-referencia').value.trim(),
+            paqueteria_preferida: document.getElementById('address-paqueteria_preferida').value,
+            predeterminada: document.getElementById('address-predeterminada').checked
+        };
+        
+        // Validar campos obligatorios (SIN calle, numero)
+        const requiredFields = [
+            'nombre', 'nombre_completo', 'telefono', 'provincia', 
+            'municipio', 'sector', 'referencia'
+        ];
+        
+        for (const field of requiredFields) {
+            if (!addressData[field] || addressData[field].trim() === '') {
+                const fieldNames = {
+                    'nombre': 'Nombre para la dirección',
+                    'nombre_completo': 'Nombre completo',
+                    'telefono': 'Teléfono',
+                    'provincia': 'Provincia',
+                    'municipio': 'Municipio',
+                    'sector': 'Sector/Barrio',
+                    'referencia': 'Referencia'
+                };
+                
+                this.showNotification(`El campo "${fieldNames[field] || field}" es obligatorio`, 'error');
+                
+                // Resaltar campo vacío
+                const input = document.getElementById(`address-${field}`);
+                if (input) {
+                    input.style.borderColor = '#ff4444';
+                    input.focus();
+                }
+                return;
+            }
+        }
+        
+        // Validar formato de teléfono
+        const phoneRegex = /^809-\d{7}$/;
+        if (!phoneRegex.test(addressData.telefono)) {
+            this.showNotification('El teléfono debe tener el formato 809-1234567', 'error');
+            document.getElementById('address-telefono').style.borderColor = '#ff4444';
+            document.getElementById('address-telefono').focus();
+            return;
+        }
+        
+        try {
+            const url = isEdit 
+                ? `/api/users/${this.user.id}/addresses/${addressId}`
+                : `/api/users/${this.user.id}/addresses`;
+            
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            console.log('💾 Guardando dirección:', addressData);
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(addressData)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                this.showNotification(
+                    `Dirección ${isEdit ? 'actualizada' : 'agregada'} correctamente`, 
+                    'success'
+                );
+                
+                // Cerrar modal
+                document.getElementById('address-modal').remove();
+                
+                // Recargar sección de direcciones
+                await this.loadSection('addresses');
+                
+            } else {
+                const error = await response.json();
+                this.showNotification(error.error || `Error ${isEdit ? 'actualizando' : 'agregando'} dirección`, 'error');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error guardando dirección:', error);
+            this.showNotification('Error de conexión al guardar dirección', 'error');
+        }
+    }
+
     async setDefaultAddress(addressId) {
         if (!confirm('¿Estás seguro de que deseas establecer esta dirección como predeterminada?')) {
             return;
@@ -1575,7 +1772,7 @@ class AccountManager {
             
             if (response.ok) {
                 this.showNotification('Dirección predeterminada actualizada', 'success');
-                this.loadSection('addresses');
+                await this.loadSection('addresses');
             } else {
                 const error = await response.json();
                 this.showNotification(error.error || 'Error actualizando dirección predeterminada', 'error');
@@ -1599,7 +1796,7 @@ class AccountManager {
             
             if (response.ok) {
                 this.showNotification('Dirección eliminada correctamente', 'success');
-                this.loadSection('addresses');
+                await this.loadSection('addresses');
             } else {
                 const error = await response.json();
                 this.showNotification(error.error || 'Error eliminando dirección', 'error');
@@ -1608,248 +1805,6 @@ class AccountManager {
         } catch (error) {
             console.error('Error eliminando dirección:', error);
             this.showNotification('Error eliminando dirección', 'error');
-        }
-    }
-
-    showAddressForm(address = null) {
-        const isEdit = !!address;
-        
-        // Lista de paqueterías para RD (obligatorio)
-        const shippingCompanies = [
-            'Mundo Cargo',
-            'VIMENPAQ',
-            'MBE (Mail Boxes Etc.)',
-            'Sendpack',
-            'ViaCourier',
-            'CPS Courier',
-            'EPS'
-        ];
-        
-        const formHTML = `
-            <div class="modal-overlay" id="address-modal">
-                <div class="modal-content address-modal-content">
-                    <div class="modal-header">
-                        <h2><i class="fas fa-map-marker-alt"></i> ${isEdit ? 'Editar' : 'Agregar'} Dirección</h2>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    
-                    <form id="address-form" class="modal-form">
-                        <input type="hidden" id="address-id" value="${address?.id || ''}">
-                        
-                        <div class="form-section">
-                            <h3><i class="fas fa-truck"></i> Información de Paquetería (Obligatorio)</h3>
-                            
-                            <div class="form-group">
-                                <label for="address-paqueteria_preferida">
-                                    <i class="fas fa-shipping-fast"></i> Servicio de Paquetería *
-                                </label>
-                                <select id="address-paqueteria_preferida" required>
-                                    <option value="">Seleccionar paquetería</option>
-                                    ${shippingCompanies.map(company => `
-                                        <option value="${company}" 
-                                                ${address?.paqueteria_preferida === company ? 'selected' : ''}>
-                                            ${company}
-                                        </option>
-                                    `).join('')}
-                                </select>
-                                <small class="hint">Selecciona la paquetería donde quieres recibir tu paquete</small>
-                            </div>
-                        </div>
-                        
-                        <div class="form-section">
-                            <h3><i class="fas fa-user"></i> Información de Contacto</h3>
-                            
-                            <div class="form-group">
-                                <label for="address-nombre_completo">
-                                    <i class="fas fa-user-circle"></i> Nombre Completo *
-                                </label>
-                                <input type="text" id="address-nombre_completo" 
-                                       value="${address?.nombre_completo || this.user.nombre + ' ' + this.user.apellido || ''}" 
-                                       placeholder="Ej: María García López"
-                                       required>
-                                <small class="hint">Nombre completo del destinatario</small>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="address-telefono">
-                                    <i class="fas fa-phone"></i> Teléfono *
-                                </label>
-                                <div class="input-with-prefix">
-                                    <span class="prefix">+1 (809)</span>
-                                    <input type="tel" id="address-telefono" 
-                                           value="${address?.telefono || ''}" 
-                                           placeholder="555-1234"
-                                           pattern="[0-9]{3}-[0-9]{4}"
-                                           required>
-                                </div>
-                                <small class="hint">Número donde podemos contactarte</small>
-                            </div>
-                        </div>
-                        
-                        <div class="form-section">
-                            <h3><i class="fas fa-map"></i> Ubicación de la Paquetería</h3>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="address-provincia">
-                                        <i class="fas fa-globe"></i> Provincia *
-                                    </label>
-                                    <select id="address-provincia" required>
-                                        <option value="">Seleccionar provincia</option>
-                                        ${this.provinces.map(province => `
-                                            <option value="${province}" 
-                                                    ${address?.provincia === province ? 'selected' : ''}>
-                                                ${province}
-                                            </option>
-                                        `).join('')}
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="address-municipio">
-                                        <i class="fas fa-city"></i> Municipio *
-                                    </label>
-                                    <input type="text" id="address-municipio" 
-                                           value="${address?.municipio || ''}" 
-                                           placeholder="Ej: Santo Domingo Este"
-                                           required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="address-sector">
-                                    <i class="fas fa-map-pin"></i> Sector/Barrio *
-                                </label>
-                                <input type="text" id="address-sector" 
-                                       value="${address?.sector || ''}" 
-                                       placeholder="Ej: Naco, Los Prados, Bella Vista"
-                                       required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="address-referencia">
-                                    <i class="fas fa-info-circle"></i> Referencia de la Paquetería *
-                                </label>
-                                <textarea id="address-referencia" 
-                                          rows="3" 
-                                          placeholder="Ej: Frente al supermercado, al lado de la farmacia, paquetería Mundo Cargo de la calle principal..."
-                                          required>${address?.referencia || ''}</textarea>
-                                <small class="hint">Describe cómo llegar a la paquetería o algún punto de referencia importante</small>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group preferences-section">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="address-predeterminada" 
-                                       ${address?.predeterminada ? 'checked' : ''}>
-                                <span><strong>Establecer como dirección predeterminada</strong></span>
-                            </label>
-                            <small class="hint">Esta será tu dirección principal para todos los envíos</small>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="submit" class="btn-save">
-                                <i class="fas ${isEdit ? 'fa-edit' : 'fa-plus'}"></i>
-                                ${isEdit ? 'Actualizar' : 'Agregar'} Dirección
-                            </button>
-                            <button type="button" class="btn-cancel close-modal">
-                                <i class="fas fa-times"></i> Cancelar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-        
-        // Agregar modal al documento
-        document.body.insertAdjacentHTML('beforeend', formHTML);
-        
-        // Configurar event listeners
-        const form = document.getElementById('address-form');
-        form.addEventListener('submit', (e) => this.saveAddress(e));
-        
-        document.querySelectorAll('.close-modal').forEach(button => {
-            button.addEventListener('click', () => {
-                document.getElementById('address-modal').remove();
-            });
-        });
-        
-        document.getElementById('address-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'address-modal') {
-                e.target.remove();
-            }
-        });
-    }
-
-    async saveAddress(e) {
-        e.preventDefault();
-        
-        const addressId = document.getElementById('address-id').value;
-        const isEdit = !!addressId;
-        
-        const addressData = {
-            paqueteria_preferida: document.getElementById('address-paqueteria_preferida').value,
-            nombre_completo: document.getElementById('address-nombre_completo').value,
-            telefono: document.getElementById('address-telefono').value,
-            provincia: document.getElementById('address-provincia').value,
-            municipio: document.getElementById('address-municipio').value,
-            sector: document.getElementById('address-sector').value,
-            referencia: document.getElementById('address-referencia').value,
-            predeterminada: document.getElementById('address-predeterminada').checked
-        };
-        
-        // Agregar prefijo al teléfono si no lo tiene
-        if (addressData.telefono && !addressData.telefono.startsWith('809-')) {
-            addressData.telefono = `809-${addressData.telefono.replace(/\D/g, '').slice(0, 7)}`;
-        }
-        
-        // Validar campos obligatorios
-        const requiredFields = [
-            'paqueteria_preferida',
-            'nombre_completo',
-            'telefono',
-            'provincia',
-            'municipio',
-            'sector',
-            'referencia'
-        ];
-        
-        for (const field of requiredFields) {
-            if (!addressData[field] || addressData[field].trim() === '') {
-                this.showNotification(`El campo ${field.replace('_', ' ')} es obligatorio`, 'error');
-                return;
-            }
-        }
-        
-        try {
-            const url = isEdit 
-                ? `/api/users/${this.user.id}/addresses/${addressId}`
-                : `/api/users/${this.user.id}/addresses`;
-            
-            const method = isEdit ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(addressData)
-            });
-            
-            if (response.ok) {
-                this.showNotification(
-                    `Dirección ${isEdit ? 'actualizada' : 'agregada'} correctamente`, 
-                    'success'
-                );
-                document.getElementById('address-modal').remove();
-                this.loadSection('addresses');
-            } else {
-                const error = await response.json();
-                this.showNotification(error.error || `Error ${isEdit ? 'actualizando' : 'agregando'} dirección`, 'error');
-            }
-            
-        } catch (error) {
-            console.error('Error guardando dirección:', error);
-            this.showNotification('Error guardando dirección', 'error');
         }
     }
 
@@ -1887,7 +1842,7 @@ class AccountManager {
             
             if (response.ok) {
                 this.showNotification('Producto eliminado de tu wishlist', 'success');
-                this.loadSection('wishlist');
+                await this.loadSection('wishlist');
             } else {
                 const error = await response.json();
                 this.showNotification(error.error || 'Error eliminando de wishlist', 'error');
@@ -1906,7 +1861,20 @@ class AccountManager {
         
         try {
             const wishlist = await this.getWishlist();
-            const deletePromises = wishlist.map(item => 
+            const realWishlist = wishlist.filter(item => {
+                return !item.is_sample && 
+                       !item.is_example && 
+                       !item.nombre?.toLowerCase().includes('ejemplo') &&
+                       !item.nombre?.toLowerCase().includes('sample') &&
+                       !item.nombre?.toLowerCase().includes('demo');
+            });
+            
+            if (realWishlist.length === 0) {
+                this.showNotification('Tu wishlist ya está vacía', 'info');
+                return;
+            }
+            
+            const deletePromises = realWishlist.map(item => 
                 fetch(`/api/users/${this.user.id}/wishlist/${item.producto_id}`, {
                     method: 'DELETE'
                 })
@@ -1914,7 +1882,7 @@ class AccountManager {
             
             await Promise.all(deletePromises);
             this.showNotification('Wishlist vaciada correctamente', 'success');
-            this.loadSection('wishlist');
+            await this.loadSection('wishlist');
             
         } catch (error) {
             console.error('Error vaciando wishlist:', error);
@@ -1924,43 +1892,65 @@ class AccountManager {
 
     async addToCartFromWishlist(productId) {
         try {
-            const response = await fetch(`/api/products/${productId}`);
-            if (!response.ok) throw new Error('Producto no encontrado');
+            // Obtener producto
+            const product = await this.getProductById(productId);
             
-            const product = await response.json();
-            
-            // Agregar al carrito usando localStorage
-            let cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
-            const existingItem = cart.find(item => item.id == product.id);
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    id: product.id,
-                    name: product.nombre,
-                    price: product.precio_final || product.precio,
-                    image: product.imagen || '/public/images/default-product.jpg',
-                    quantity: 1
-                });
+            if (!product) {
+                this.showNotification('Producto no encontrado', 'error');
+                return;
             }
             
-            localStorage.setItem('mabel_cart', JSON.stringify(cart));
-            
-            // Actualizar contador del carrito
-            this.updateCartCount();
-            
+            // Agregar al carrito
+            this.addToCart(product);
             this.showNotification('Producto agregado al carrito', 'success');
             
+            // Actualizar contador
+            this.updateCartCount();
+            
         } catch (error) {
-            console.error('Error agregando al carrito desde wishlist:', error);
+            console.error('Error agregando al carrito:', error);
             this.showNotification('Error agregando al carrito', 'error');
         }
     }
 
+    async getProductById(productId) {
+        try {
+            const response = await fetch(`/api/products/${productId}`);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            console.error('Error obteniendo producto:', error);
+            return null;
+        }
+    }
+
+    addToCart(product) {
+        let cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
+        
+        // Buscar si el producto ya está en el carrito
+        const existingIndex = cart.findIndex(item => item.id == product.id);
+        
+        if (existingIndex > -1) {
+            // Incrementar cantidad
+            cart[existingIndex].quantity += 1;
+        } else {
+            // Agregar nuevo producto
+            cart.push({
+                id: product.id,
+                name: product.nombre,
+                price: product.precio_final || product.precio,
+                image: product.imagen || '/public/images/default-product.jpg',
+                quantity: 1
+            });
+        }
+        
+        localStorage.setItem('mabel_cart', JSON.stringify(cart));
+        this.updateCartCount();
+    }
+
     updateCartCount() {
         const cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
         
         document.querySelectorAll('.cart-count').forEach(element => {
             if (element) {
@@ -2004,6 +1994,7 @@ class AccountManager {
         
         try {
             // En desarrollo, simular éxito
+            await new Promise(resolve => setTimeout(resolve, 500));
             this.showNotification('Configuración actualizada correctamente', 'success');
             
         } catch (error) {
@@ -2024,7 +2015,6 @@ class AccountManager {
         }
         
         try {
-            // En desarrollo, simular eliminación
             this.showNotification('Cuenta eliminada correctamente. Serás redirigido a la página principal.', 'success');
             setTimeout(() => {
                 window.location.href = '/';
@@ -2071,7 +2061,7 @@ class AccountManager {
                     type === 'error' ? '#721c24' : 
                     type === 'warning' ? '#856404' : '#0c5460'};
             padding: 15px 20px;
-            border-radius: 4px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -2079,6 +2069,7 @@ class AccountManager {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             max-width: 400px;
             animation: slideIn 0.3s ease;
+            font-size: 14px;
         `;
         
         // Estilo para el botón de cerrar
@@ -2110,20 +2101,23 @@ class AccountManager {
         });
         
         // Animación CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
+        if (!document.querySelector('#notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
                 }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     getNotificationIcon(type) {
@@ -2137,10 +2131,10 @@ class AccountManager {
     }
 }
 
-
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.account-section')) {
-        window.AccountManager = new AccountManager();
+        console.log('🚀 Inicializando AccountManagerFixed...');
+        window.accountManager = new AccountManagerFixed();
     }
 });

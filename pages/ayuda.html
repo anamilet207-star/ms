@@ -15,368 +15,398 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* ========== MENÚ MÁS PEQUEÑO ========== */
-        .top-bar {
-            padding: 4px 0;
-            font-size: 9px;
+        /* ========== ESTILOS ESPECÍFICOS PARA PÁGINA DE AYUDA ========== */
+        :root {
+            --primary-black: #000000;
+            --dark-gray: #1a1a1a;
+            --light-gray: #f8f8f8;
+            --white: #ffffff;
+            --accent-color: #e0e0e0;
+            --text-light: rgba(255, 255, 255, 0.8);
         }
         
-        .top-bar-content {
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .top-bar-links {
-            font-size: 8px;
-            gap: 12px;
-        }
-        
-        .main-header {
-            padding: 6px 0;
-        }
-        
-        .logo img {
-            max-height: 25px;
-        }
-        
-        .header-icons {
-            font-size: 12px;
-            gap: 12px;
-        }
-        
-        .cart-count {
-            font-size: 7px;
-            width: 10px;
-            height: 10px;
-            top: -6px;
-            right: -6px;
-        }
-        
-        .main-nav {
-            margin-top: 6px;
-        }
-        
-        .nav-menu {
-            gap: 6px;
-            padding-bottom: 3px;
-            min-height: 28px;
-        }
-        
-        .nav-menu li a {
-            font-size: 9px;
-            padding: 4px 6px;
-        }
-        
-        /* ========== HERO MÁS PEQUEÑO ========== */
+        /* Hero Section */
         .help-hero {
-            padding: 50px 0; /* Reducido de 80px 0 */
+            background: linear-gradient(135deg, var(--primary-black) 0%, var(--dark-gray) 100%);
+            padding: 100px 0 60px;
+            text-align: center;
+            color: var(--white);
         }
-        
+
         .help-hero-title {
-            font-size: 32px; /* Reducido de 48px */
-            letter-spacing: 2px; /* Reducido de 3px */
-            margin-bottom: 15px; /* Reducido de 20px */
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-        
+
         .help-hero-subtitle {
-            font-size: 14px; /* Reducido de 18px */
-            max-width: 500px;
+            color: var(--text-light);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            font-weight: 300;
         }
-        
-        /* ========== SECCIÓN AYUDA MÁS COMPACTA ========== */
-        .help-section {
-            padding: 40px 0; /* Reducido de 80px 0 */
+
+        /* Sección de Categorías */
+        .help-categories-section {
+            padding: 80px 0;
+            background: var(--white);
         }
-        
+
+        .help-categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .help-category-card {
+            background: var(--white);
+            padding: 40px 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .help-category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .category-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary-black);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 24px;
+        }
+
+        .help-category-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .help-category-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Sección de Contenido Principal */
+        .help-main-content {
+            padding: 80px 0;
+            background: var(--light-gray);
+        }
+
         .help-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 15px; /* Reducido de 0 20px */
+            padding: 0 20px;
         }
-        
-        .help-categories {
-            gap: 20px; /* Reducido de 30px */
-            margin-bottom: 40px; /* Reducido de 60px */
-        }
-        
-        .help-category {
-            padding: 20px; /* Reducido de 30px */
-            border-radius: 6px; /* Reducido de 8px */
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08); /* Reducido de 0 4px 15px */
-        }
-        
-        .help-category-icon {
-            width: 50px; /* Reducido de 70px */
-            height: 50px; /* Reducido de 70px */
-            margin: 0 auto 15px; /* Reducido de 0 auto 20px */
-            font-size: 18px; /* Reducido de 24px */
-        }
-        
-        .help-category-title {
-            font-size: 16px; /* Reducido de 18px */
-            margin-bottom: 8px; /* Reducido de 10px */
-        }
-        
-        .help-category-desc {
-            font-size: 12px; /* Reducido de 14px */
-        }
-        
-        /* ========== CONTENIDO PRINCIPAL MÁS COMPACTO ========== */
-        .help-content {
-            padding: 25px; /* Reducido de 40px */
-            border-radius: 6px; /* Reducido de 8px */
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08); /* Reducido de 0 4px 15px */
-        }
-        
+
+        /* Tabs */
         .help-tabs {
-            margin-bottom: 25px; /* Reducido de 30px */
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
-        
+
         .help-tab {
-            padding: 12px 18px; /* Reducido de 15px 25px */
-            font-size: 12px; /* Reducido de 14px */
+            padding: 15px 25px;
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        
+
+        .help-tab:hover {
+            background: #f0f0f0;
+        }
+
+        .help-tab.active {
+            background: var(--primary-black);
+            color: var(--white);
+            border-color: var(--primary-black);
+        }
+
+        /* Contenido de Tabs */
+        .help-tab-content {
+            display: none;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .help-tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .tab-title {
-            font-size: 20px; /* Reducido de 24px */
-            margin-bottom: 20px; /* Reducido de 30px */
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            color: var(--primary-black);
         }
-        
-        .faq-list {
-            margin-bottom: 30px; /* Reducido de 40px */
+
+        /* FAQ */
+        .faq-item {
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            overflow: hidden;
         }
-        
-        .faq-item-help {
-            margin-bottom: 10px; /* Reducido de 15px */
-            border-radius: 3px; /* Reducido de 4px */
+
+        .faq-question {
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            background: var(--white);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
         }
-        
-        .faq-question-help {
-            padding: 15px; /* Reducido de 20px */
-            font-size: 14px;
+
+        .faq-question:hover {
+            background: #f9f9f9;
         }
-        
-        .faq-answer-help {
-            padding: 15px; /* Reducido de 20px */
-            font-size: 13px;
+
+        .faq-answer {
+            padding: 0 20px;
+            color: #666;
+            line-height: 1.6;
+            font-size: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
         }
-        
-        /* ========== POLÍTICAS Y TÉRMINOS MÁS COMPACTOS ========== */
+
+        .faq-answer.active {
+            padding: 20px;
+            max-height: 500px;
+        }
+
+        .faq-question i {
+            transition: transform 0.3s ease;
+        }
+
+        .faq-question.active i {
+            transform: rotate(180deg);
+        }
+
+        /* Contenido de Políticas */
         .policy-content, .terms-content {
-            font-size: 14px;
-            line-height: 1.6; /* Reducido de 1.8 */
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
         }
-        
+
         .policy-content h3, .terms-content h3 {
-            margin: 20px 0 10px; /* Reducido de 30px 0 15px */
-            font-size: 16px; /* Reducido de 18px */
-        }
-        
-        .policy-content ul, .terms-content ul {
-            margin: 10px 0; /* Reducido de 15px 0 */
-        }
-        
-        .policy-content li, .terms-content li {
-            margin-bottom: 8px; /* Reducido de 10px */
-            font-size: 13px;
-        }
-        
-        /* ========== CTA DE CONTACTO MÁS COMPACTO ========== */
-        .contact-cta {
-            margin-top: 40px; /* Reducido de 60px */
-            padding-top: 25px; /* Reducido de 40px */
-        }
-        
-        .contact-cta h3 {
             font-size: 18px;
+            font-weight: 500;
+            margin: 30px 0 15px;
+            color: var(--primary-black);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .policy-content ul, .terms-content ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .policy-content li, .terms-content li {
             margin-bottom: 10px;
+            position: relative;
+            padding-left: 10px;
         }
-        
+
+        .policy-content li:before, .terms-content li:before {
+            content: "•";
+            color: var(--primary-black);
+            position: absolute;
+            left: 0;
+        }
+
+        /* CTA de Contacto */
+        .contact-cta {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .contact-cta h3 {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
         .contact-cta p {
-            margin-bottom: 15px; /* Reducido de 20px */
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: var(--primary-black);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
             font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
-        
-        /* ========== FOOTER MÁS COMPACTO ========== */
-        .main-footer {
-            padding: 25px 0 15px;
+
+        .btn:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        
-        .footer-section h3 {
-            font-size: 13px;
-            margin-bottom: 8px;
+
+        /* Tarjeta de Información Importante */
+        .info-card {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 25px;
+            margin: 40px 0;
+            border-radius: 4px;
         }
-        
-        .footer-links li {
-            font-size: 11px;
-            margin-bottom: 5px;
+
+        .info-card h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        /* ========== MEDIA QUERIES ========== */
-        @media (min-width: 768px) {
-            .top-bar {
-                padding: 6px 0;
-                font-size: 10px;
+
+        .info-card p {
+            color: #856404;
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* Animaciones */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
-            
-            .top-bar-content {
-                flex-direction: row;
-            }
-            
-            .top-bar-links {
-                font-size: 9px;
-            }
-            
-            .main-header {
-                padding: 10px 0;
-            }
-            
-            .logo img {
-                max-height: 30px;
-            }
-            
-            .header-icons {
-                font-size: 14px;
-                gap: 15px;
-            }
-            
-            .main-nav {
-                margin-top: 0;
-            }
-            
-            .nav-menu {
-                gap: 10px;
-                padding-bottom: 0;
-            }
-            
-            .nav-menu li a {
-                font-size: 10px;
-                padding: 6px 8px;
-            }
-            
-            .cart-count {
-                font-size: 8px;
-                width: 12px;
-                height: 12px;
-                top: -7px;
-                right: -7px;
-            }
-            
-            .help-hero {
-                padding: 60px 0; /* Un poco más en tablet */
-            }
-            
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
             .help-hero-title {
-                font-size: 36px; /* Un poco más en tablet */
+                font-size: 32px;
             }
             
-            .help-hero-subtitle {
-                font-size: 15px; /* Un poco más en tablet */
-            }
-            
-            .help-categories {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            }
-            
-            .help-category {
-                padding: 25px; /* Un poco más en tablet */
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .top-bar {
-                font-size: 11px;
-            }
-            
-            .nav-menu {
-                gap: 15px;
-            }
-            
-            .nav-menu li a {
-                font-size: 11px;
-                padding: 6px 10px;
-            }
-            
-            .help-hero-title {
-                font-size: 38px; /* Un poco más en desktop */
-            }
-            
-            .help-category {
-                min-width: 230px;
-            }
-        }
-        
-        @media (max-width: 360px) {
-            .top-bar {
-                font-size: 8px;
-                padding: 3px 0;
-            }
-            
-            .top-bar-links {
-                gap: 8px;
-                font-size: 7px;
-            }
-            
-            .logo img {
-                max-height: 22px;
-            }
-            
-            .header-icons {
-                font-size: 11px;
-                gap: 10px;
-            }
-            
-            .nav-menu {
-                gap: 4px;
-            }
-            
-            .nav-menu li a {
-                font-size: 8px;
-                padding: 3px 5px;
-            }
-            
-            .help-hero {
-                padding: 30px 0; /* Aún más pequeño en móviles pequeños */
-            }
-            
-            .help-hero-title {
-                font-size: 24px; /* Aún más pequeño en móviles pequeños */
-                letter-spacing: 1px;
-            }
-            
-            .help-hero-subtitle {
-                font-size: 12px;
-                padding: 0 10px;
-            }
-            
-            .help-container {
-                padding: 0 10px;
-            }
-            
-            .help-categories {
+            .help-categories-grid {
                 grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .help-content {
-                padding: 15px;
             }
             
             .help-tabs {
-                flex-wrap: wrap;
+                flex-direction: column;
             }
             
             .help-tab {
-                flex: 1 0 auto;
-                padding: 10px;
-                font-size: 11px;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .help-tab-content {
+                padding: 20px;
+            }
+            
+            .tab-title {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .help-hero-title {
+                font-size: 28px;
+            }
+            
+            .help-hero-subtitle {
+                font-size: 16px;
+                padding: 0 15px;
+            }
+            
+            .category-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+            
+            .help-category-card {
+                padding: 30px 20px;
+            }
+            
+            .contact-cta h3 {
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Top Bar MÁS PEQUEÑO -->
+    <!-- Top Bar -->
     <div class="top-bar">
         <div class="container top-bar-content">
             <div class="top-bar-text">
@@ -390,15 +420,15 @@
         </div>
     </div>
 
-    <!-- Header MÁS COMPACTO -->
+    <!-- Header Principal -->
     <header class="main-header" id="mainHeader">
         <div class="container header-container">
-            <!-- Logo más pequeño -->
+            <!-- Logo -->
             <a href="/" class="logo">
                 <img src="/public/icons/logo-mabel.png" class="logo-png" alt="Mabel Activewear">
             </a>
 
-            <!-- Navegación MÁS COMPACTA -->
+            <!-- Navegación -->
             <nav class="main-nav">
                 <ul class="nav-menu">
                     <li><a href="/shop">TIENDA</a></li>
@@ -409,7 +439,7 @@
                 </ul>
             </nav>
 
-            <!-- Iconos más pequeños -->
+            <!-- Iconos -->
             <div class="header-icons">
                 <a href="/account" class="icon-link" title="Mi Cuenta">
                     <i class="fas fa-user"></i>
@@ -422,263 +452,347 @@
         </div>
     </header>
 
-    <!-- Hero MÁS COMPACTO -->
+    <!-- Hero Section -->
     <section class="help-hero">
         <div class="container">
             <h1 class="help-hero-title">CENTRO DE AYUDA</h1>
             <p class="help-hero-subtitle">
-                Encuentra respuestas a tus preguntas y toda la información que necesitas.
+                Encuentra respuestas a tus preguntas y toda la información que necesitas sobre 
+                nuestros productos, envíos, pagos y más.
             </p>
         </div>
     </section>
 
-    <!-- Categorías de Ayuda MÁS COMPACTAS -->
-    <section class="help-section">
-        <div class="help-container">
-            <div class="help-categories">
-                <a href="#envios" class="help-category">
-                    <div class="help-category-icon">
-                        <i class="fas fa-shipping-fast"></i>
-                    </div>
-                    <h3 class="help-category-title">Envíos</h3>
-                    <p class="help-category-desc">Tiempos y costos de envío</p>
-                </a>
-                
-                <a href="#pagos" class="help-category">
-                    <div class="help-category-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <h3 class="help-category-title">Pagos</h3>
-                    <p class="help-category-desc">Métodos de pago aceptados</p>
-                </a>
-                
-                <a href="#tallas" class="help-category">
-                    <div class="help-category-icon">
-                        <i class="fas fa-ruler"></i>
-                    </div>
-                    <h3 class="help-category-title">Guía de Tallas</h3>
-                    <p class="help-category-desc">Cómo elegir tu talla correcta</p>
-                </a>
+    <!-- Categorías de Ayuda -->
+    <section class="help-categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">¿EN QUÉ PODEMOS AYUDARTE?</h2>
+                <p class="section-subtitle">
+                    Selecciona una categoría para encontrar información específica.
+                </p>
             </div>
             
-            <!-- Contenido Principal MÁS COMPACTO -->
-            <div class="help-content">
-                <div class="help-tabs">
-                    <button class="help-tab active" data-tab="faq">Preguntas Frecuentes</button>
-                    <button class="help-tab" data-tab="envios">Envíos</button>
-                    <button class="help-tab" data-tab="privacidad">Política de Privacidad</button>
-                    <button class="help-tab" data-tab="terminos">Términos y Condiciones</button>
-                </div>
-                
-                <!-- Preguntas Frecuentes -->
-                <div class="help-tab-content active" id="faq-tab">
-                    <h2 class="tab-title">Preguntas Frecuentes</h2>
-                    
-                    <div class="faq-list">
-                        <div class="faq-item-help">
-                            <div class="faq-question-help">
-                                ¿Cómo puedo hacer un seguimiento de mi pedido?
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <div class="faq-answer-help">
-                                Una vez que tu pedido sea despachado, recibirás un email con el número de seguimiento. 
-                                También puedes iniciar sesión en tu cuenta para ver el estado actualizado de tu pedido.
-                            </div>
-                        </div>
-                        
-                        <div class="faq-item-help">
-                            <div class="faq-question-help">
-                                ¿Ofrecen envío internacional?
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <div class="faq-answer-help">
-                                Sí, realizamos envíos internacionales a la mayoría de los países. 
-                                Los tiempos y costos de envío varían según el destino.
-                            </div>
-                        </div>
-                        
-                        <div class="faq-item-help">
-                            <div class="faq-question-help">
-                                ¿Qué métodos de pago aceptan?
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <div class="faq-answer-help">
-                                Aceptamos tarjetas de crédito (Visa, MasterCard, American Express), PayPal, 
-                                y transferencias bancarias en algunos países.
-                            </div>
-                        </div>
-                        
-                        <div class="faq-item-help">
-                            <div class="faq-question-help">
-                                ¿Cómo puedo cambiar o cancelar mi pedido?
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <div class="faq-answer-help">
-                                Para cambios o cancelaciones, contáctanos dentro de las primeras 2 horas 
-                                después de realizar el pedido. Una vez procesado, no podemos realizar cambios.
-                            </div>
-                        </div>
+            <div class="help-categories-grid">
+                <a href="#envios" class="help-category-card fade-in">
+                    <div class="category-icon">
+                        <i class="fas fa-shipping-fast"></i>
                     </div>
-                </div>
+                    <h3>Envíos</h3>
+                    <p>Tiempos, costos y opciones de envío disponibles</p>
+                </a>
                 
-                <!-- Envíos -->
-                <div class="help-tab-content" id="envios-tab">
-                    <h2 class="tab-title">Política de Envíos</h2>
-                    
-                    <div class="policy-content">
-                        <h3>Tiempos de Envío</h3>
-                        <ul>
-                            <li><strong>Envío Nacional:</strong> Depende de la paqueteria que eliga</li>
-                          
-                        </ul>
-                        
-                        <h3>Costos de Envío</h3>
-                        <ul>
-                            <li>Esto tambien depende de su paqueteria</li>
-                        </ul>
-                        
-                        <h3>Seguimiento de Pedidos</h3>
-                        <p>
-                            Cuando tu pedido sea entregado a la paqueteria se enviara un correo de confirmación.
-                        </p>
-                        
-                        <h3>Destinos Internacionales</h3>
-                        <p>
-                            Actualmente realizamos envíos a: Republica Dominicana
-                        </p>
+                <a href="#pagos" class="help-category-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="category-icon">
+                        <i class="fas fa-credit-card"></i>
                     </div>
-                </div>
+                    <h3>Pagos</h3>
+                    <p>Métodos de pago aceptados y seguridad</p>
+                </a>
                 
-                <!-- Política de Privacidad -->
-                <div class="help-tab-content" id="privacidad-tab">
-                    <h2 class="tab-title">Política de Privacidad</h2>
-                    
-                    <div class="policy-content">
-                        <p><em>Última actualización: Enero 2024</em></p>
-                        
-                        <h3>1. Información que Recopilamos</h3>
-                        <p>
-                            Recopilamos información que nos proporcionas directamente, incluyendo:
-                        </p>
-                        <ul>
-                            <li>Nombre y datos de contacto</li>
-                            <li>Información de pago</li>
-                            <li>Dirección de envío</li>
-                            <li>Preferencias de comunicación</li>
-                        </ul>
-                        
-                        <h3>2. Uso de la Información</h3>
-                        <p>
-                            Utilizamos tu información para:
-                        </p>
-                        <ul>
-                            <li>Procesar y enviar tus pedidos</li>
-                            <li>Comunicarnos contigo sobre tu pedido</li>
-                            <li>Mejorar nuestros productos y servicios</li>
-                            <li>Enviar promociones (con tu consentimiento)</li>
-                        </ul>
-                        
-                        <h3>3. Protección de Datos</h3>
-                        <p>
-                            Implementamos medidas de seguridad para proteger tu información personal 
-                            contra accesos no autorizados, alteración o destrucción.
-                        </p>
-                        
-                        <h3>4. Cookies</h3>
-                        <p>
-                            Utilizamos cookies para mejorar tu experiencia de navegación y analizar 
-                            el tráfico del sitio web. Puedes deshabilitar las cookies en la configuración de tu navegador.
-                        </p>
-                        
-                        <h3>5. Tus Derechos</h3>
-                        <p>
-                            Tienes derecho a:
-                        </p>
-                        <ul>
-                            <li>Acceder a tu información personal</li>
-                            <li>Rectificar información incorrecta</li>
-                            <li>Solicitar la eliminación de tus datos</li>
-                            <li>Oponerte al procesamiento de tus datos</li>
-                        </ul>
-                        
-                        <h3>6. Contacto</h3>
-                        <p>
-                            Para preguntas sobre nuestra política de privacidad, contáctanos en:
-                            <a href="mailto:privacidad@mabelactivewear.com">privacidad@mabelactivewear.com</a>
-                        </p>
+                <a href="#tallas" class="help-category-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="category-icon">
+                        <i class="fas fa-ruler"></i>
                     </div>
-                </div>
+                    <h3>Guía de Tallas</h3>
+                    <p>Cómo elegir tu talla correcta</p>
+                </a>
                 
-                <!-- Términos y Condiciones -->
-                <div class="help-tab-content" id="terminos-tab">
-                    <h2 class="tab-title">Términos y Condiciones</h2>
-                    
-                    <div class="terms-content">
-                        <p><em>Última actualización: Enero 2024</em></p>
-                        
-                        <h3>1. Aceptación de Términos</h3>
-                        <p>
-                            Al acceder y utilizar nuestro sitio web, aceptas cumplir con estos términos y condiciones.
-                        </p>
-                        
-                        <h3>2. Información del Producto</h3>
-                        <p>
-                            Nos esforzamos por mostrar los productos con la mayor precisión posible. 
-                            Sin embargo, los colores pueden variar ligeramente debido a la configuración de tu pantalla.
-                        </p>
-                        
-                        <h3>3. Precios y Pagos</h3>
-                        <p>
-                            Todos los precios están en dólares estadounidenses (USD). 
-                            Nos reservamos el derecho de modificar los precios en cualquier momento.
-                        </p>
-                        
-                        <h3>4. Propiedad Intelectual</h3>
-                        <p>
-                            Todo el contenido del sitio web (diseños, logotipos, textos, imágenes) 
-                            es propiedad de Mabel Activewear y está protegido por leyes de derechos de autor.
-                        </p>
-                        
-                        <h3>5. Limitación de Responsabilidad</h3>
-                        <p>
-                            Mabel Activewear no será responsable por daños indirectos, incidentales o consecuentes 
-                            resultantes del uso o la imposibilidad de uso de nuestros productos.
-                        </p>
-                        
-                        <h3>6. Ley Aplicable</h3>
-                        <p>
-                            Estos términos se regirán e interpretarán de acuerdo con las leyes del país donde 
-                            opera nuestra empresa principal.
-                        </p>
-                        
-                        <h3>7. Modificaciones</h3>
-                        <p>
-                            Nos reservamos el derecho de modificar estos términos en cualquier momento. 
-                            Los cambios entrarán en vigor inmediatamente después de su publicación en el sitio web.
-                        </p>
+                <a href="#devoluciones" class="help-category-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="category-icon">
+                        <i class="fas fa-exchange-alt"></i>
                     </div>
-                </div>
-                
-                <!-- CTA de Contacto MÁS COMPACTO -->
-                <div class="contact-cta">
-                    <h3>¿No encontraste lo que buscabas?</h3>
-                    <p>Nuestro equipo de soporte está aquí para ayudarte.</p>
-                    <a href="/contacto" class="btn" style="display: inline-block; padding: 10px 20px; font-size: 12px;">
-                        <i class="fas fa-envelope"></i> Contactar Soporte
-                    </a>
-                </div>
+                    <h3>Devoluciones</h3>
+                    <p>Política de cambios y devoluciones</p>
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer MÁS COMPACTO -->
+    <!-- Contenido Principal -->
+    <section class="help-main-content">
+        <div class="help-container">
+            <!-- Tabs -->
+            <div class="help-tabs">
+                <button class="help-tab active" data-tab="faq">Preguntas Frecuentes</button>
+                <button class="help-tab" data-tab="envios">Envíos</button>
+                <button class="help-tab" data-tab="pagos">Pagos</button>
+                <button class="help-tab" data-tab="privacidad">Política de Privacidad</button>
+                <button class="help-tab" data-tab="terminos">Términos y Condiciones</button>
+            </div>
+            
+            <!-- Preguntas Frecuentes -->
+            <div class="help-tab-content active" id="faq-tab">
+                <h2 class="tab-title">Preguntas Frecuentes</h2>
+                
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Cómo puedo hacer un seguimiento de mi pedido?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Una vez que tu pedido sea despachado, recibirás un email con el número de seguimiento. 
+                            También puedes iniciar sesión en tu cuenta para ver el estado actualizado de tu pedido.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Ofrecen envío internacional?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Sí, realizamos envíos internacionales a la mayoría de los países. 
+                            Los tiempos y costos de envío varían según el destino.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Qué métodos de pago aceptan?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Aceptamos tarjetas de crédito (Visa, MasterCard, American Express), PayPal, 
+                            y transferencias bancarias en algunos países.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Cómo puedo cambiar o cancelar mi pedido?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Para cambios o cancelaciones, contáctanos dentro de las primeras 2 horas 
+                            después de realizar el pedido. Una vez procesado, no podemos realizar cambios.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Cómo funciona la guía de tallas?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            En cada producto encontrarás una tabla de tallas detallada. Te recomendamos 
+                            medirte y comparar con nuestras medidas para asegurar el ajuste perfecto.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            ¿Cuál es la política de devoluciones?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Aceptamos devoluciones dentro de los 30 días posteriores a la recepción del pedido. 
+                            Los productos deben estar en perfecto estado, sin usar y con etiquetas.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Envíos -->
+            <div class="help-tab-content" id="envios-tab">
+                <h2 class="tab-title">Política de Envíos</h2>
+                
+                <div class="info-card">
+                    <h4><i class="fas fa-exclamation-circle"></i> INFORMACIÓN IMPORTANTE</h4>
+                    <p>
+                        En Mabel Activewear NO cobramos por el servicio de envío. 
+                        Puedes seleccionar la agencia de tu preferencia y tú te encargas 
+                        del pago directamente en la sucursal cuando vayas a retirar tu paquete.
+                    </p>
+                </div>
+                
+                <div class="policy-content">
+                    <h3>Tiempos de Envío</h3>
+                    <p>Procesamos todos los pedidos dentro de 24-48 horas hábiles. Los tiempos de entrega dependen de la paquetería seleccionada:</p>
+                    <ul>
+                        <li><strong>Vimenpaq:</strong> 2-5 días hábiles</li>
+                        <li><strong>Caribe Tours:</strong> 1-3 días hábiles</li>
+                        <li><strong>Aero Pack:</strong> 1-2 días hábiles</li>
+                        <li><strong>Mundo Cargo:</strong> 3-7 días hábiles</li>
+                    </ul>
+                    
+                    <h3>Agencias Disponibles</h3>
+                    <p>Puedes elegir entre las siguientes agencias de envío:</p>
+                    <ul>
+                        <li>Vimenpaq</li>
+                        <li>Caribe Tours</li>
+                        <li>Aero Pack</li>
+                        <li>Mundo Cargo</li>
+                    </ul>
+                    
+                    <h3>Seguimiento de Pedidos</h3>
+                    <p>
+                        Cuando tu pedido sea entregado a la paquetería, recibirás un correo de confirmación 
+                        con el número de seguimiento. También puedes rastrear tu envío directamente 
+                        en el sitio web de la agencia seleccionada.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Pagos -->
+            <div class="help-tab-content" id="pagos-tab">
+                <h2 class="tab-title">Métodos de Pago</h2>
+                
+                <div class="policy-content">
+                    <h3>Métodos Aceptados</h3>
+                    <p>Aceptamos los siguientes métodos de pago:</p>
+                    <ul>
+                        <li><strong>Tarjetas de Crédito:</strong> Visa, MasterCard, American Express</li>
+                        <li><strong>Tarjetas de Débito:</strong> Todas las principales redes</li>
+                        <li><strong>PayPal:</strong> Pago seguro a través de PayPal</li>
+                        <li><strong>Transferencia Bancaria:</strong> Disponible para algunos países</li>
+                    </ul>
+                    
+                    <h3>Seguridad en Pagos</h3>
+                    <p>
+                        Tu seguridad es nuestra prioridad. Todas las transacciones están protegidas con 
+                        encriptación SSL de 256-bit. No almacenamos información de tarjetas de crédito 
+                        en nuestros servidores.
+                    </p>
+                    
+                    <h3>Facturación</h3>
+                    <p>
+                        Al completar tu compra, recibirás una factura electrónica por correo. 
+                        Si necesitas una factura física, contáctanos después de realizar tu pedido.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Política de Privacidad -->
+            <div class="help-tab-content" id="privacidad-tab">
+                <h2 class="tab-title">Política de Privacidad</h2>
+                
+                <div class="policy-content">
+                    <p><em>Última actualización: Enero 2024</em></p>
+                    
+                    <h3>1. Información que Recopilamos</h3>
+                    <p>
+                        Recopilamos información que nos proporcionas directamente, incluyendo:
+                    </p>
+                    <ul>
+                        <li>Nombre y datos de contacto</li>
+                        <li>Información de pago</li>
+                        <li>Dirección de envío</li>
+                        <li>Preferencias de comunicación</li>
+                    </ul>
+                    
+                    <h3>2. Uso de la Información</h3>
+                    <p>
+                        Utilizamos tu información para:
+                    </p>
+                    <ul>
+                        <li>Procesar y enviar tus pedidos</li>
+                        <li>Comunicarnos contigo sobre tu pedido</li>
+                        <li>Mejorar nuestros productos y servicios</li>
+                        <li>Enviar promociones (con tu consentimiento)</li>
+                    </ul>
+                    
+                    <h3>3. Protección de Datos</h3>
+                    <p>
+                        Implementamos medidas de seguridad para proteger tu información personal 
+                        contra accesos no autorizados, alteración o destrucción.
+                    </p>
+                    
+                    <h3>4. Cookies</h3>
+                    <p>
+                        Utilizamos cookies para mejorar tu experiencia de navegación y analizar 
+                        el tráfico del sitio web. Puedes deshabilitar las cookies en la configuración de tu navegador.
+                    </p>
+                    
+                    <h3>5. Tus Derechos</h3>
+                    <p>
+                        Tienes derecho a:
+                    </p>
+                    <ul>
+                        <li>Acceder a tu información personal</li>
+                        <li>Rectificar información incorrecta</li>
+                        <li>Solicitar la eliminación de tus datos</li>
+                        <li>Oponerte al procesamiento de tus datos</li>
+                    </ul>
+                    
+                    <h3>6. Contacto</h3>
+                    <p>
+                        Para preguntas sobre nuestra política de privacidad, contáctanos en:
+                        <a href="mailto:privacidad@mabelactivewear.com">privacidad@mabelactivewear.com</a>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Términos y Condiciones -->
+            <div class="help-tab-content" id="terminos-tab">
+                <h2 class="tab-title">Términos y Condiciones</h2>
+                
+                <div class="terms-content">
+                    <p><em>Última actualización: Enero 2024</em></p>
+                    
+                    <h3>1. Aceptación de Términos</h3>
+                    <p>
+                        Al acceder y utilizar nuestro sitio web, aceptas cumplir con estos términos y condiciones.
+                    </p>
+                    
+                    <h3>2. Información del Producto</h3>
+                    <p>
+                        Nos esforzamos por mostrar los productos con la mayor precisión posible. 
+                        Sin embargo, los colores pueden variar ligeramente debido a la configuración de tu pantalla.
+                    </p>
+                    
+                    <h3>3. Precios y Pagos</h3>
+                    <p>
+                        Todos los precios están en dólares estadounidenses (USD). 
+                        Nos reservamos el derecho de modificar los precios en cualquier momento.
+                    </p>
+                    
+                    <h3>4. Propiedad Intelectual</h3>
+                    <p>
+                        Todo el contenido del sitio web (diseños, logotipos, textos, imágenes) 
+                        es propiedad de Mabel Activewear y está protegido por leyes de derechos de autor.
+                    </p>
+                    
+                    <h3>5. Limitación de Responsabilidad</h3>
+                    <p>
+                        Mabel Activewear no será responsable por daños indirectos, incidentales o consecuentes 
+                        resultantes del uso o la imposibilidad de uso de nuestros productos.
+                    </p>
+                    
+                    <h3>6. Ley Aplicable</h3>
+                    <p>
+                        Estos términos se regirán e interpretarán de acuerdo con las leyes del país donde 
+                        opera nuestra empresa principal.
+                    </p>
+                    
+                    <h3>7. Modificaciones</h3>
+                    <p>
+                        Nos reservamos el derecho de modificar estos términos en cualquier momento. 
+                        Los cambios entrarán en vigor inmediatamente después de su publicación en el sitio web.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- CTA de Contacto -->
+            <div class="contact-cta">
+                <h3>¿NO ENCONTRASTE LO QUE BUSCABAS?</h3>
+                <p>Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta o inquietud que tengas.</p>
+                <a href="/contacto" class="btn">
+                    <i class="fas fa-envelope"></i> Contactar Soporte
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
                 <!-- Información de la Empresa -->
                 <div class="footer-section">
                     <h3>MABEL ACTIVEWEAR</h3>
-                    <p style="font-size: 12px;">
+                    <p>
                         Ropa deportiva femenina de alta calidad. Diseñada para mujeres activas 
                         que valoran el estilo, el rendimiento y la comodidad en cada movimiento.
                     </p>
@@ -734,7 +848,7 @@
             </div>
 
             <div class="footer-bottom">
-                <p class="copyright" style="font-size: 11px;">
+                <p class="copyright">
                     &copy; 2024 MABEL ACTIVEWEAR. TODOS LOS DERECHOS RESERVADOS.
                 </p>
             </div>
@@ -744,15 +858,19 @@
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('❓ Página de ayuda cargada');
+            
             // Header scroll effect
             const header = document.getElementById('mainHeader');
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 100) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
+            if (header) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 100) {
+                        header.classList.add('scrolled');
+                    } else {
+                        header.classList.remove('scrolled');
+                    }
+                });
+            }
             
             // Tab functionality
             const tabs = document.querySelectorAll('.help-tab');
@@ -772,42 +890,87 @@
                     const content = document.getElementById(`${tabId}-tab`);
                     if (content) {
                         content.classList.add('active');
+                        
+                        // Scroll to top of content
+                        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
+                    
+                    // Update URL hash
+                    window.location.hash = tabId;
                 });
             });
             
+            // Check URL hash on load
+            const hash = window.location.hash.substring(1);
+            if (hash && ['faq', 'envios', 'pagos', 'privacidad', 'terminos'].includes(hash)) {
+                const tab = document.querySelector(`.help-tab[data-tab="${hash}"]`);
+                if (tab) {
+                    tab.click();
+                }
+            }
+            
             // FAQ functionality
-            const faqItems = document.querySelectorAll('.faq-item-help');
+            const faqItems = document.querySelectorAll('.faq-item');
             faqItems.forEach(item => {
-                const question = item.querySelector('.faq-question-help');
+                const question = item.querySelector('.faq-question');
                 question.addEventListener('click', () => {
-                    // Close other items
+                    const answer = question.nextElementSibling;
+                    const isActive = answer.classList.contains('active');
+                    
+                    // Close all other items
                     faqItems.forEach(otherItem => {
-                        if (otherItem !== item && otherItem.classList.contains('active')) {
-                            otherItem.classList.remove('active');
+                        if (otherItem !== item) {
+                            const otherAnswer = otherItem.querySelector('.faq-answer');
+                            const otherQuestion = otherItem.querySelector('.faq-question');
+                            otherAnswer.classList.remove('active');
+                            otherQuestion.classList.remove('active');
                         }
                     });
                     
                     // Toggle current item
-                    item.classList.toggle('active');
+                    if (!isActive) {
+                        answer.classList.add('active');
+                        question.classList.add('active');
+                    } else {
+                        answer.classList.remove('active');
+                        question.classList.remove('active');
+                    }
                 });
             });
             
             // Update cart count
-            updateCartCount();
-        });
-        
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            function updateCartCount() {
+                const cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                
+                document.querySelectorAll('.cart-count').forEach(element => {
+                    if (element) {
+                        element.textContent = totalItems;
+                        element.style.display = totalItems > 0 ? 'inline-block' : 'none';
+                    }
+                });
+            }
             
-            document.querySelectorAll('.cart-count').forEach(element => {
-                if (element) {
-                    element.textContent = totalItems;
-                    element.style.display = totalItems > 0 ? 'inline-block' : 'none';
-                }
+            updateCartCount();
+            
+            // Smooth scroll for category links
+            document.querySelectorAll('.help-category-card').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const tab = document.querySelector(`.help-tab[data-tab="${targetId}"]`);
+                    if (tab) {
+                        tab.click();
+                    }
+                });
             });
-        }
+            
+            // Add animation delays for fade-in elements
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
     </script>
 </body>
 </html>

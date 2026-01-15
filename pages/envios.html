@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envíos - Mabel Activewear</title>
+    <title>Ayuda - Mabel Activewear</title>
     
-    <!-- Estilos -->
+    <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/benefits.css">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,15 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Estilos específicos para la página de envíos */
-        .shipping-hero {
+        /* ========== HERO SECTION (igual que envíos) ========== */
+        .help-hero {
             background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
             padding: 100px 0 60px;
             text-align: center;
             color: white;
         }
 
-        .shipping-hero-title {
+        .help-hero-title {
             font-size: 48px;
             font-weight: 300;
             letter-spacing: 4px;
@@ -36,7 +35,7 @@
             color: transparent;
         }
 
-        .shipping-hero-subtitle {
+        .help-hero-subtitle {
             color: rgba(255, 255, 255, 0.8);
             font-size: 18px;
             max-width: 600px;
@@ -45,41 +44,62 @@
             font-weight: 300;
         }
 
-        .shipping-content {
+        /* ========== CATEGORÍAS DE AYUDA MEJORADAS ========== */
+        .help-categories-section {
             padding: 80px 0;
             background: #f8f8f8;
         }
 
-        .shipping-process {
-            padding: 80px 0;
-            background: white;
-        }
-
-        .shipping-process-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-top: 50px;
-        }
-
-        .process-step {
+        .section-header {
             text-align: center;
-            padding: 30px;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        .section-subtitle {
+            color: #666;
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .help-categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .help-category-card {
             background: white;
+            padding: 40px 30px;
             border-radius: 8px;
+            text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
 
-        .process-step:hover {
+        .help-category-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
-        .step-number {
-            width: 60px;
-            height: 60px;
-            background: black;
+        .help-category-icon {
+            width: 70px;
+            height: 70px;
+            background: #000;
             color: white;
             border-radius: 50%;
             display: flex;
@@ -87,141 +107,128 @@
             justify-content: center;
             margin: 0 auto 25px;
             font-size: 24px;
-            font-weight: 600;
-        }
-
-        .process-step h3 {
-            font-size: 18px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        .process-step p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
-            font-weight: 300;
-        }
-
-        .shipping-agencies {
-            padding: 80px 0;
-            background: #f8f8f8;
-        }
-
-        .agencies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
-        }
-
-        .agency-card {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
         }
 
-        .agency-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        .help-category-card:hover .help-category-icon {
+            transform: scale(1.1);
+            background: #333;
         }
 
-        .agency-logo {
-            height: 60px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .agency-logo i {
-            font-size: 48px;
-            color: #000;
-        }
-
-        .agency-card h3 {
+        .help-category-card h3 {
             font-size: 18px;
             font-weight: 500;
             letter-spacing: 1px;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
 
-        .agency-card p {
+        .help-category-desc {
             color: #666;
             font-size: 14px;
             line-height: 1.6;
-            margin-bottom: 15px;
         }
 
-        .agency-features {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .agency-features li {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .agency-features i {
-            color: #000;
-            font-size: 12px;
-        }
-
-        .important-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 25px;
-            margin: 40px 0;
-            border-radius: 4px;
-        }
-
-        .important-info h4 {
-            color: #856404;
-            margin-bottom: 10px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .important-info p {
-            color: #856404;
-            margin-bottom: 0;
-            line-height: 1.6;
-        }
-
-        .shipping-faq {
+        /* ========== CONTENIDO PRINCIPAL MEJORADO ========== */
+        .help-content-section {
             padding: 80px 0;
             background: white;
         }
 
-        .faq-item {
-            margin-bottom: 30px;
+        .help-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .help-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
             border-bottom: 1px solid #eee;
             padding-bottom: 20px;
         }
 
-        .faq-question {
-            font-size: 18px;
+        .help-tab {
+            padding: 15px 25px;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
             font-weight: 500;
-            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .help-tab:hover {
+            border-color: #000;
+            color: #000;
+        }
+
+        .help-tab.active {
+            background: #000;
+            color: white;
+            border-color: #000;
+        }
+
+        .tab-title {
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        /* ========== FAQ MEJORADO ========== */
+        .faq-list {
+            margin-bottom: 40px;
+        }
+
+        .faq-item-help {
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item-help:hover {
+            border-color: #ddd;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .faq-question-help {
+            padding: 20px;
+            background: #f8f8f8;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s ease;
         }
 
-        .faq-answer {
+        .faq-question-help:hover {
+            background: #f0f0f0;
+        }
+
+        .faq-question-help i {
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item-help.active .faq-question-help i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer-help {
+            padding: 20px;
+            background: white;
             color: #666;
             line-height: 1.6;
             font-size: 15px;
@@ -230,25 +237,101 @@
             transition: max-height 0.3s ease;
         }
 
-        .faq-answer.active {
+        .faq-item-help.active .faq-answer-help {
             max-height: 500px;
         }
 
-        .faq-question i {
-            transition: transform 0.3s ease;
+        /* ========== CONTENIDO DE POLÍTICAS MEJORADO ========== */
+        .policy-content, .terms-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #666;
         }
 
-        .faq-question.active i {
-            transform: rotate(180deg);
+        .policy-content h3, .terms-content h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 30px 0 15px;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
+        .policy-content p, .terms-content p {
+            margin-bottom: 15px;
+        }
+
+        .policy-content ul, .terms-content ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .policy-content li, .terms-content li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .policy-content li:before, .terms-content li:before {
+            content: "•";
+            color: #000;
+            position: absolute;
+            left: -5px;
+        }
+
+        /* ========== CTA DE CONTACTO MEJORADO ========== */
+        .contact-cta {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .contact-cta h3 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 15px;
+            color: #000;
+            letter-spacing: 1px;
+        }
+
+        .contact-cta p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #000;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            border: 1px solid #000;
+        }
+
+        .btn:hover {
+            background: white;
+            color: #000;
+        }
+
+        /* ========== HIGHLIGHT BOX ========== */
         .highlight-box {
             background: #000;
             color: white;
-            padding: 30px;
+            padding: 40px;
             border-radius: 8px;
             text-align: center;
-            margin: 40px auto;
+            margin: 60px auto 40px;
             max-width: 800px;
         }
 
@@ -267,59 +350,119 @@
             margin-bottom: 0;
         }
 
-        @media (max-width: 768px) {
-            .shipping-hero-title {
-                font-size: 32px;
-            }
-            
-            .agencies-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .process-step {
-                padding: 20px;
+        /* ========== ANIMATIONS ========== */
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        @media (max-width: 480px) {
-            .shipping-hero-title {
-                font-size: 28px;
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .help-hero-title {
+                font-size: 32px;
+                letter-spacing: 2px;
+            }
+            
+            .help-hero-subtitle {
+                font-size: 16px;
+                padding: 0 15px;
+            }
+            
+            .section-title {
+                font-size: 24px;
+            }
+            
+            .help-categories-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .help-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .help-tab {
+                flex: 1;
+                min-width: 140px;
+                text-align: center;
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+            
+            .tab-title {
+                font-size: 20px;
+                text-align: center;
             }
             
             .highlight-box {
-                padding: 20px;
+                padding: 30px 20px;
+                margin: 40px auto;
             }
             
             .highlight-box h3 {
                 font-size: 20px;
             }
         }
+
+        @media (max-width: 480px) {
+            .help-hero-title {
+                font-size: 28px;
+            }
+            
+            .help-hero {
+                padding: 80px 0 40px;
+            }
+            
+            .help-category-card {
+                padding: 30px 20px;
+            }
+            
+            .help-tab {
+                min-width: 100%;
+            }
+            
+            .faq-question-help {
+                padding: 15px;
+                font-size: 15px;
+            }
+            
+            .faq-answer-help {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Header Superior -->
+    <!-- Top Bar -->
     <div class="top-bar">
         <div class="container top-bar-content">
             <div class="top-bar-text">
-                ENVÍO GRATIS EN PEDIDOS SUPERIORES A $50
+                ENVÍO A LA PAQUETERIA DE TU ELECCIÓN
             </div>
             <ul class="top-bar-links">
-                <li><a href="/envios" class="active">Envíos</a></li>
-                <li><a href="/ayuda">Ayuda</a></li>
+                <li><a href="/envios">Envíos</a></li>
+                <li><a href="/ayuda" class="active">Ayuda</a></li>
                 <li><a href="/contacto">Contacto</a></li>
             </ul>
         </div>
     </div>
 
-    <!-- Header Principal -->
+    <!-- Header -->
     <header class="main-header" id="mainHeader">
         <div class="container header-container">
-            <!-- Logo -->
             <a href="/" class="logo">
                 <img src="/public/icons/logo-mabel.png" class="logo-png" alt="Mabel Activewear">
             </a>
 
-            <!-- Navegación -->
             <nav class="main-nav">
                 <ul class="nav-menu">
                     <li><a href="/shop">TIENDA</a></li>
@@ -330,7 +473,6 @@
                 </ul>
             </nav>
 
-            <!-- Iconos -->
             <div class="header-icons">
                 <a href="/account" class="icon-link" title="Mi Cuenta">
                     <i class="fas fa-user"></i>
@@ -343,279 +485,315 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="shipping-hero">
+    <!-- Hero Section (estilo igual que envíos) -->
+    <section class="help-hero">
         <div class="container">
-            <h1 class="shipping-hero-title">INFORMACIÓN DE ENVÍOS</h1>
-            <p class="shipping-hero-subtitle">
-                Ofrecemos múltiples opciones de envío para que recibas tus productos 
-                de la manera más conveniente y segura para ti.
+            <h1 class="help-hero-title">CENTRO DE AYUDA</h1>
+            <p class="help-hero-subtitle">
+                Encuentra respuestas a tus preguntas y toda la información que necesitas sobre tu experiencia con Mabel Activewear.
             </p>
         </div>
     </section>
 
-    <!-- Caja de información destacada -->
+    <!-- Categorías de Ayuda -->
+    <section class="help-categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">¿EN QUÉ PODEMOS AYUDARTE?</h2>
+                <p class="section-subtitle">
+                    Selecciona una categoría para encontrar rápidamente la información que necesitas.
+                </p>
+            </div>
+            
+            <div class="help-categories-grid">
+                <a href="#envios" class="help-category-card fade-in">
+                    <div class="help-category-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h3>Envíos</h3>
+                    <p class="help-category-desc">Tiempos, costos y seguimiento de envíos</p>
+                </a>
+                
+                <a href="#pagos" class="help-category-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="help-category-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>Pagos</h3>
+                    <p class="help-category-desc">Métodos de pago aceptados y seguridad</p>
+                </a>
+                
+                <a href="#tallas" class="help-category-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="help-category-icon">
+                        <i class="fas fa-ruler"></i>
+                    </div>
+                    <h3>Guía de Tallas</h3>
+                    <p class="help-category-desc">Cómo elegir tu talla correcta</p>
+                </a>
+                
+                <a href="#devoluciones" class="help-category-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="help-category-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <h3>Devoluciones</h3>
+                    <p class="help-category-desc">Política de cambios y devoluciones</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Highlight Box -->
     <div class="container">
-        <div class="highlight-box">
-            <h3>🚚 ENVÍOS SIN COSTO ADICIONAL</h3>
+        <div class="highlight-box fade-in">
+            <h3><i class="fas fa-headset"></i> SOPORTE PERSONALIZADO</h3>
             <p>
-                En Mabel Activewear NO cobramos por el servicio de envío. 
-                Puedes seleccionar la agencia de tu preferencia y tú te encargas 
-                del pago directamente en la sucursal cuando vayas a retirar tu paquete.
+                ¿No encuentras lo que buscas? Nuestro equipo de atención al cliente está disponible 
+                para ayudarte de forma personalizada. Contáctanos por WhatsApp o correo electrónico.
             </p>
         </div>
     </div>
 
-    <!-- Proceso de Envío -->
-    <section class="shipping-process">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">¿CÓMO FUNCIONAN NUESTROS ENVÍOS?</h2>
-                <p class="section-subtitle">
-                    Un proceso simple y transparente para que recibas tus productos sin complicaciones.
-                </p>
-            </div>
-            
-            <div class="shipping-process-grid">
-                <div class="process-step fade-in">
-                    <div class="step-number">1</div>
-                    <h3>Realiza tu pedido</h3>
-                    <p>
-                        Agrega tus productos favoritos al carrito y completa el proceso de compra 
-                        en nuestra tienda online.
-                    </p>
+    <!-- Contenido Principal -->
+    <section class="help-content-section">
+        <div class="help-container">
+            <div class="help-content">
+                <div class="help-tabs">
+                    <button class="help-tab active" data-tab="faq">Preguntas Frecuentes</button>
+                    <button class="help-tab" data-tab="envios">Envíos</button>
+                    <button class="help-tab" data-tab="privacidad">Política de Privacidad</button>
+                    <button class="help-tab" data-tab="terminos">Términos y Condiciones</button>
                 </div>
                 
-                <div class="process-step fade-in" style="animation-delay: 0.1s;">
-                    <div class="step-number">2</div>
-                    <h3>Selecciona tu agencia</h3>
-                    <p>
-                        Durante el checkout, elige la agencia de envío que prefieras 
-                        entre las múltiples opciones disponibles.
-                    </p>
-                </div>
-                
-                <div class="process-step fade-in" style="animation-delay: 0.2s;">
-                    <div class="step-number">3</div>
-                    <h3>Procesamos tu orden</h3>
-                    <p>
-                        Preparamos tu pedido con cuidado y lo enviamos a la agencia seleccionada 
-                        dentro de 24-48 horas hábiles.
-                    </p>
-                </div>
-                
-                <div class="process-step fade-in" style="animation-delay: 0.3s;">
-                    <div class="step-number">4</div>
-                    <h3>Retira tu paquete</h3>
-                    <p>
-                        Te notificaremos cuando tu pedido llegue a la sucursal. 
-                        Ve a retirarlo y paga directamente en la agencia.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Agencias de Envío -->
-    <section class="shipping-agencies">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">AGENCIAS DE ENVÍO DISPONIBLES</h2>
-                <p class="section-subtitle">
-                    Selecciona la que mejor se adapte a tus necesidades y ubicación.
-                </p>
-            </div>
-            
-            <div class="agencies-grid">
-                <!-- Vimenpaq -->
-                <div class="agency-card fade-in">
-                    <div class="agency-logo">
-                        <i class="fas fa-shipping-fast"></i>
+                <!-- Preguntas Frecuentes -->
+                <div class="help-tab-content active" id="faq-tab">
+                    <h2 class="tab-title">Preguntas Frecuentes</h2>
+                    
+                    <div class="faq-list">
+                        <div class="faq-item-help">
+                            <div class="faq-question-help">
+                                ¿Cómo puedo hacer un seguimiento de mi pedido?
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer-help">
+                                Una vez que tu pedido sea despachado, recibirás un email con el número de seguimiento 
+                                y un mensaje por WhatsApp. También puedes iniciar sesión en tu cuenta para ver 
+                                el estado actualizado de tu pedido en tiempo real.
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item-help">
+                            <div class="faq-question-help">
+                                ¿Ofrecen envío internacional?
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer-help">
+                                Sí, realizamos envíos internacionales a la mayoría de los países. 
+                                Los tiempos y costos de envío varían según el destino. 
+                                Durante el checkout, podrás seleccionar tu país y ver las opciones disponibles.
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item-help">
+                            <div class="faq-question-help">
+                                ¿Qué métodos de pago aceptan?
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer-help">
+                                Aceptamos tarjetas de crédito (Visa, MasterCard, American Express), 
+                                PayPal, transferencias bancarias y pago contra entrega en algunos países. 
+                                Todas las transacciones están protegidas con encriptación SSL de 256 bits.
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item-help">
+                            <div class="faq-question-help">
+                                ¿Cómo puedo cambiar o cancelar mi pedido?
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer-help">
+                                Para cambios o cancelaciones, contáctanos dentro de las primeras 2 horas 
+                                después de realizar el pedido. Una vez procesado, no podemos realizar cambios. 
+                                Puedes contactarnos por WhatsApp para solicitar modificaciones.
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item-help">
+                            <div class="faq-question-help">
+                                ¿Cuál es la política de devoluciones?
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer-help">
+                                Aceptamos devoluciones dentro de los 30 días posteriores a la recepción, 
+                                siempre que los productos estén sin usar, con etiquetas y en su embalaje original. 
+                                El costo del envío de devolución corre por cuenta del cliente.
+                            </div>
+                        </div>
                     </div>
-                    <h3>VIMENPAQ</h3>
-                    <p>
-                        Una de las agencias más confiables con amplia cobertura nacional 
-                        y múltiples sucursales.
-                    </p>
-                    <div class="agency-features">
+                </div>
+                
+                <!-- Envíos -->
+                <div class="help-tab-content" id="envios-tab">
+                    <h2 class="tab-title">Política de Envíos</h2>
+                    
+                    <div class="policy-content">
+                        <h3>Tiempos de Envío</h3>
                         <ul>
-                            <li><i class="fas fa-check"></i> Amplia cobertura nacional</li>
-                            <li><i class="fas fa-check"></i> Rastreo en tiempo real</li>
-                            <li><i class="fas fa-check"></i> Múltiples sucursales</li>
-                            <li><i class="fas fa-check"></i> Entrega en 2-5 días hábiles</li>
+                            <li><strong>Envío Nacional:</strong> Depende de la paquetería que elijas</li>
+                            <li><strong>Procesamiento:</strong> 24-48 horas hábiles</li>
+                            <li><strong>Seguimiento:</strong> Disponible para todos los envíos</li>
+                        </ul>
+                        
+                        <h3>Costos de Envío</h3>
+                        <ul>
+                            <li>Los costos varían según la agencia seleccionada</li>
+                            <li>Pago directo en sucursal al retirar</li>
+                            <li>Sin costos adicionales de nuestra parte</li>
+                        </ul>
+                        
+                        <h3>Seguimiento de Pedidos</h3>
+                        <p>
+                            Cuando tu pedido sea entregado a la paquetería, recibirás un correo de confirmación 
+                            con el número de tracking. Puedes rastrear tu envío en tiempo real desde la página web 
+                            de la agencia seleccionada.
+                        </p>
+                        
+                        <h3>Agencias Disponibles</h3>
+                        <ul>
+                            <li>Vimenpaq</li>
+                            <li>Caribe Tours</li>
+                            <li>AeroPack</li>
+                            <li>Mundo Cargo</li>
                         </ul>
                     </div>
                 </div>
                 
-                <!-- Caribe Tours -->
-                <div class="agency-card fade-in" style="animation-delay: 0.1s;">
-                    <div class="agency-logo">
-                        <i class="fas fa-bus"></i>
-                    </div>
-                    <h3>CARIBE TOURS</h3>
-                    <p>
-                        Ideal para envíos interurbanos con terminales en todas las principales ciudades.
-                    </p>
-                    <div class="agency-features">
+                <!-- Política de Privacidad -->
+                <div class="help-tab-content" id="privacidad-tab">
+                    <h2 class="tab-title">Política de Privacidad</h2>
+                    
+                    <div class="policy-content">
+                        <p><em>Última actualización: Enero 2024</em></p>
+                        
+                        <h3>1. Información que Recopilamos</h3>
+                        <p>
+                            Recopilamos información que nos proporcionas directamente, incluyendo:
+                        </p>
                         <ul>
-                            <li><i class="fas fa-check"></i> Excelente para envíos interurbanos</li>
-                            <li><i class="fas fa-check"></i> Terminales en ciudades principales</li>
-                            <li><i class="fas fa-check"></i> Tarifas competitivas</li>
-                            <li><i class="fas fa-check"></i> Horarios flexibles de retiro</li>
+                            <li>Nombre y datos de contacto</li>
+                            <li>Información de pago</li>
+                            <li>Dirección de envío</li>
+                            <li>Preferencias de comunicación</li>
+                            <li>Historial de compras</li>
                         </ul>
-                    </div>
-                </div>
-                
-                <!-- AeroPack -->
-                <div class="agency-card fade-in" style="animation-delay: 0.2s;">
-                    <div class="agency-logo">
-                        <i class="fas fa-plane"></i>
-                    </div>
-                    <h3>AERO PACK</h3>
-                    <p>
-                        La opción más rápida para envíos urgentes y entregas prioritarias.
-                    </p>
-                    <div class="agency-features">
+                        
+                        <h3>2. Uso de la Información</h3>
+                        <p>
+                            Utilizamos tu información para:
+                        </p>
                         <ul>
-                            <li><i class="fas fa-check"></i> La opción más rápida</li>
-                            <li><i class="fas fa-check"></i> Ideal para envíos urgentes</li>
-                            <li><i class="fas fa-check"></i> Servicio express disponible</li>
-                            <li><i class="fas fa-check"></i> Seguro incluido</li>
+                            <li>Procesar y enviar tus pedidos</li>
+                            <li>Comunicarnos contigo sobre tu pedido</li>
+                            <li>Mejorar nuestros productos y servicios</li>
+                            <li>Enviar promociones (con tu consentimiento)</li>
+                            <li>Personalizar tu experiencia de compra</li>
                         </ul>
-                    </div>
-                </div>
-                
-                <!-- Mundo Cargo -->
-                <div class="agency-card fade-in" style="animation-delay: 0.3s;">
-                    <div class="agency-logo">
-                        <i class="fas fa-truck-loading"></i>
-                    </div>
-                    <h3>MUNDO CARGO</h3>
-                    <p>
-                        Cobertura extensa con precios económicos, perfecta para pedidos estándar.
-                    </p>
-                    <div class="agency-features">
+                        
+                        <h3>3. Protección de Datos</h3>
+                        <p>
+                            Implementamos medidas de seguridad avanzadas para proteger tu información personal 
+                            contra accesos no autorizados, alteración o destrucción. Utilizamos encriptación SSL 
+                            de 256 bits para todas las transacciones.
+                        </p>
+                        
+                        <h3>4. Cookies</h3>
+                        <p>
+                            Utilizamos cookies para mejorar tu experiencia de navegación y analizar 
+                            el tráfico del sitio web. Puedes deshabilitar las cookies en la configuración de tu navegador.
+                        </p>
+                        
+                        <h3>5. Tus Derechos</h3>
+                        <p>
+                            Tienes derecho a:
+                        </p>
                         <ul>
-                            <li><i class="fas fa-check"></i> Cobertura nacional extensa</li>
-                            <li><i class="fas fa-check"></i> Precios económicos</li>
-                            <li><i class="fas fa-check"></i> Seguimiento online</li>
-                            <li><i class="fas fa-check"></i> Atención al cliente 24/7</li>
+                            <li>Acceder a tu información personal</li>
+                            <li>Rectificar información incorrecta</li>
+                            <li>Solicitar la eliminación de tus datos</li>
+                            <li>Oponerte al procesamiento de tus datos</li>
+                            <li>Portabilidad de datos</li>
                         </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Información importante -->
-            <div class="important-info fade-in">
-                <h4><i class="fas fa-exclamation-circle"></i> INFORMACIÓN IMPORTANTE</h4>
-                <p>
-                    <strong>El costo del envío NO está incluido en el precio de tu compra.</strong> 
-                    Cuando tu pedido llegue a la sucursal seleccionada, deberás pagar directamente 
-                    a la agencia por el servicio de transporte. Esto te permite elegir la opción 
-                    más conveniente y pagar solo por el servicio que realmente utilizas.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Preguntas Frecuentes -->
-    <section class="shipping-faq">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">PREGUNTAS FRECUENTES</h2>
-                <p class="section-subtitle">
-                    Resolvemos tus dudas sobre nuestro proceso de envíos.
-                </p>
-            </div>
-            
-            <div class="faq-container">
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>¿Cuánto tiempo tardan en enviar mi pedido?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
+                        
+                        <h3>6. Contacto</h3>
                         <p>
-                            Procesamos y despachamos todos los pedidos dentro de 24-48 horas hábiles 
-                            después de confirmar tu compra. Una vez despachado, el tiempo de entrega 
-                            dependerá de la agencia seleccionada y tu ubicación.
+                            Para preguntas sobre nuestra política de privacidad, contáctanos en:
+                            <a href="mailto:privacidad@mabelactivewear.com" style="color: #000; text-decoration: underline;">privacidad@mabelactivewear.com</a>
                         </p>
                     </div>
                 </div>
                 
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>¿Puedo cambiar la agencia después de hacer mi pedido?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
+                <!-- Términos y Condiciones -->
+                <div class="help-tab-content" id="terminos-tab">
+                    <h2 class="tab-title">Términos y Condiciones</h2>
+                    
+                    <div class="terms-content">
+                        <p><em>Última actualización: Enero 2024</em></p>
+                        
+                        <h3>1. Aceptación de Términos</h3>
                         <p>
-                            Sí, puedes solicitar un cambio de agencia siempre y cuando tu pedido 
-                            no haya sido despachado. Contáctanos a través de nuestro WhatsApp 
-                            o correo electrónico para hacer la modificación.
+                            Al acceder y utilizar nuestro sitio web, aceptas cumplir con estos términos y condiciones 
+                            y nuestra política de privacidad. Te recomendamos leerlos detenidamente.
+                        </p>
+                        
+                        <h3>2. Información del Producto</h3>
+                        <p>
+                            Nos esforzamos por mostrar los productos con la mayor precisión posible. 
+                            Sin embargo, los colores pueden variar ligeramente debido a la configuración de tu pantalla. 
+                            Las medidas de las prendas pueden tener una variación de ±2 cm.
+                        </p>
+                        
+                        <h3>3. Precios y Pagos</h3>
+                        <p>
+                            Todos los precios están en dólares estadounidenses (USD) e incluyen impuestos aplicables. 
+                            Nos reservamos el derecho de modificar los precios en cualquier momento. 
+                            Los cambios no afectarán a pedidos ya confirmados.
+                        </p>
+                        
+                        <h3>4. Propiedad Intelectual</h3>
+                        <p>
+                            Todo el contenido del sitio web (diseños, logotipos, textos, imágenes, fotografías) 
+                            es propiedad intelectual de Mabel Activewear y está protegido por leyes de derechos de autor.
+                        </p>
+                        
+                        <h3>5. Limitación de Responsabilidad</h3>
+                        <p>
+                            Mabel Activewear no será responsable por daños indirectos, incidentales o consecuentes 
+                            resultantes del uso o la imposibilidad de uso de nuestros productos, excepto cuando 
+                            la ley aplicable no permita dicha limitación.
+                        </p>
+                        
+                        <h3>6. Ley Aplicable</h3>
+                        <p>
+                            Estos términos se regirán e interpretarán de acuerdo con las leyes de la 
+                            República Dominicana. Cualquier disputa estará sujeta a la jurisdicción exclusiva 
+                            de los tribunales de Santo Domingo.
+                        </p>
+                        
+                        <h3>7. Modificaciones</h3>
+                        <p>
+                            Nos reservamos el derecho de modificar estos términos en cualquier momento. 
+                            Los cambios entrarán en vigor inmediatamente después de su publicación en el sitio web. 
+                            Te recomendamos revisar periódicamente estos términos.
                         </p>
                     </div>
                 </div>
                 
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>¿Cómo sé cuándo ha llegado mi paquete?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>
-                            Te enviaremos un correo electrónico y un mensaje por WhatsApp 
-                            con el número de tracking una vez que tu pedido haya sido 
-                            entregado a la agencia. También puedes rastrear tu envío 
-                            directamente en el sitio web de la agencia seleccionada.
-                        </p>
-                    </div>
+                <!-- CTA de Contacto -->
+                <div class="contact-cta fade-in" style="animation-delay: 0.2s;">
+                    <h3>¿NO ENCONTRASTE LO QUE BUSCABAS?</h3>
+                    <p>Nuestro equipo de soporte está aquí para ayudarte. Contáctanos y te responderemos en menos de 24 horas.</p>
+                    <a href="/contacto" class="btn">
+                        <i class="fas fa-envelope"></i> Contactar Soporte
+                    </a>
                 </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>¿Qué pasa si no retiro mi paquete?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>
-                            Las agencias generalmente mantienen los paquetes en sucursal 
-                            por 15 días hábiles. Si no es retirado en ese tiempo, 
-                            el paquete será devuelto a nosotros y se aplicará una tarifa 
-                            de reenvío si deseas que lo enviemos nuevamente.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>¿Puedo hacer envíos internacionales?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>
-                            Actualmente solo realizamos envíos dentro de República Dominicana. 
-                            Estamos trabajando para expandir nuestro servicio a nivel 
-                            internacional en el futuro.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Llamada a la acción -->
-    <section class="newsletter-section" style="background: #000;">
-        <div class="container">
-            <div class="newsletter-content fade-in">
-                <h2 class="newsletter-title">¿LISTA PARA COMPRAR?</h2>
-                <p class="newsletter-text" style="color: rgba(255, 255, 255, 0.8);">
-                    Ahora que conoces nuestro proceso de envíos, 
-                    explora nuestra colección y encuentra el outfit perfecto para ti.
-                </p>
-                <a href="/shop" class="btn" style="background: white; color: black;">
-                    VER COLECCIÓN
-                </a>
             </div>
         </div>
     </section>
@@ -627,9 +805,9 @@
                 <!-- Información de la Empresa -->
                 <div class="footer-section">
                     <h3>MABEL ACTIVEWEAR</h3>
-                    <p>
+                    <p style="font-size: 14px;">
                         Ropa deportiva femenina de alta calidad. Diseñada para mujeres activas 
-                        que valoran el estilo, el rendimiento y la comodidad.
+                        que valoran el estilo, el rendimiento y la comodidad en cada movimiento.
                     </p>
                     <div class="social-links">
                         <a href="#" class="social-link" aria-label="Instagram">
@@ -637,6 +815,9 @@
                         </a>
                         <a href="#" class="social-link" aria-label="Facebook">
                             <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="TikTok">
+                            <i class="fab fa-tiktok"></i>
                         </a>
                     </div>
                 </div>
@@ -647,8 +828,19 @@
                     <ul class="footer-links">
                         <li><a href="/shop">Tienda</a></li>
                         <li><a href="/ofertas">Ofertas</a></li>
-                        <li><a href="/envios">Envíos</a></li>
+                        <li><a href="/tallas">Guía de Tallas</a></li>
                         <li><a href="/ayuda">Ayuda</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div class="footer-section">
+                    <h3>LEGAL</h3>
+                    <ul class="footer-links">
+                        <li><a href="#privacidad">Política de Privacidad</a></li>
+                        <li><a href="#terminos">Términos y Condiciones</a></li>
+                        <li><a href="#envios">Política de Envíos</a></li>
+                        <li><a href="#devoluciones">Devoluciones</a></li>
                     </ul>
                 </div>
 
@@ -662,18 +854,22 @@
                         </li>
                         <li>
                             <i class="fas fa-phone"></i>
-                            <a href="tel:+18095551234">(809) 555-1234</a>
+                            <a href="tel:+15551234567">+1 (555) 123-4567</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            <span>Lun-Vie: 9:00-18:00</span>
                         </li>
                         <li>
                             <i class="fab fa-whatsapp"></i>
-                            <a href="https://wa.me/18095551234">WhatsApp</a>
+                            <a href="https://wa.me/15551234567">WhatsApp</a>
                         </li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p class="copyright">
+                <p class="copyright" style="font-size: 12px;">
                     &copy; 2024 MABEL ACTIVEWEAR. TODOS LOS DERECHOS RESERVADOS.
                 </p>
             </div>
@@ -683,57 +879,74 @@
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚚 Página de envíos cargada');
-            
             // Header scroll effect
             const header = document.getElementById('mainHeader');
-            if (header) {
-                window.addEventListener('scroll', function() {
-                    if (window.scrollY > 100) {
-                        header.classList.add('scrolled');
-                    } else {
-                        header.classList.remove('scrolled');
-                    }
-                });
-            }
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
             
-            // FAQ toggle functionality
-            const faqQuestions = document.querySelectorAll('.faq-question');
-            faqQuestions.forEach(question => {
-                question.addEventListener('click', function() {
-                    const answer = this.nextElementSibling;
-                    const isActive = answer.classList.contains('active');
+            // Tab functionality
+            const tabs = document.querySelectorAll('.help-tab');
+            const tabContents = document.querySelectorAll('.help-tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
                     
-                    // Cerrar todas las respuestas
-                    document.querySelectorAll('.faq-answer').forEach(ans => {
-                        ans.classList.remove('active');
-                    });
-                    document.querySelectorAll('.faq-question').forEach(q => {
-                        q.classList.remove('active');
-                    });
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
                     
-                    // Abrir la respuesta actual si no estaba activa
-                    if (!isActive) {
-                        answer.classList.add('active');
-                        this.classList.add('active');
+                    // Show corresponding content
+                    const tabId = tab.getAttribute('data-tab');
+                    const content = document.getElementById(`${tabId}-tab`);
+                    if (content) {
+                        content.classList.add('active');
+                        
+                        // Scroll to tab content
+                        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
             });
             
-            // Actualizar contador del carrito
-            function updateCartCount() {
-                const cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
-                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-                
-                document.querySelectorAll('.cart-count').forEach(element => {
-                    if (element) {
-                        element.textContent = totalItems;
-                        element.style.display = totalItems > 0 ? 'inline-block' : 'none';
+            // FAQ functionality
+            const faqItems = document.querySelectorAll('.faq-item-help');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question-help');
+                question.addEventListener('click', () => {
+                    // Close other items
+                    faqItems.forEach(otherItem => {
+                        if (otherItem !== item && otherItem.classList.contains('active')) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current item
+                    item.classList.toggle('active');
+                });
+            });
+            
+            // Update cart count
+            updateCartCount();
+            
+            // Smooth scroll for category links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetTab = document.querySelector(`.help-tab[data-tab="${targetId}"]`);
+                    
+                    if (targetTab) {
+                        targetTab.click();
                     }
                 });
-            }
-            
-            updateCartCount();
+            });
             
             // Fade in animations
             const fadeElements = document.querySelectorAll('.fade-in');
@@ -741,6 +954,18 @@
                 element.style.animationDelay = `${index * 0.1}s`;
             });
         });
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('mabel_cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            document.querySelectorAll('.cart-count').forEach(element => {
+                if (element) {
+                    element.textContent = totalItems;
+                    element.style.display = totalItems > 0 ? 'inline-block' : 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>
